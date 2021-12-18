@@ -1,6 +1,6 @@
 # Kekkoslovakian Joulukortti Ky
 
-## Branchit (seim.:)
+## Branchit (esim.:)
 - main: sisältää toimivan tuotantoympäristöön tarkoitetun koodin
 - dev: kehitystason toimiva koodi asuu täällä
 - henkilökohtaiset dev-branchit: varsinainen kehitys tapahtuu näissä
