@@ -20,10 +20,3 @@ Toinen db saattaa olla backup tai sit sisältää henkilöstöhallinnan tietokan
     - Microsoft SQL
 
 Reskontra on rakennettu Microsoft Windows Server 2012 varaan.
-
-# Kysymyksiä asiakkaalle / projektista
-- Mitä tietokantapalvelimilla db-srv01 ja db-srv02 on ajettu?
-- Tarkennus: mitä meinaa kohdassa "Transformaatio strategia": ei lift & shift?
-- Edelliseen liittyen: mitä tarkoittaa "luodaan tyhjät vm:t simuloiduiksi työkuormiksi"?
-- Tarkennus: mitä tarkoittaa kohdassa "tietoturvavaatimukset": ympäristön tulee olla eriytettynä jne.: mitä tässä tarkoittaa "ympäristö"
-- Edelliseen liittyen: mitä tarkoittaa "on vaadittu tuotetuissa käyttöjärjestelmissä"?
