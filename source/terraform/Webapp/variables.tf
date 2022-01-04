@@ -2,7 +2,10 @@ variable "project" {}
 
 variable "credentials_file" {}
 
-# Default location placeholders:
+variable "sql_name" {}
+
+variable "sql_password" {}
+
 variable "region" {
     default = "us-central1"
 }
