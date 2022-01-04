@@ -4,7 +4,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "3.5.0"
+      version = "4.5.0"
     }
     google-beta = {
       source  = "hashicorp/google-beta"
@@ -54,6 +54,26 @@ resource "google_project_iam_member" "additional_service_account" {
   role    = element(var.additional_service_account_iam_roles, count.index)
   member  = "serviceAccount:${google_service_account.bastion.email}"
 }
+
+
+
+# IAM Policy IAP tunnelille
+
+data "google_iam_policy" "admin" {
+  binding {
+    role = "roles/iap.tunnelResourceAccessor"
+    members = var.members
+  }
+}
+
+resource "google_iap_tunnel_instance_iam_policy" "policy" {
+  project = var.project
+  zone = var.zone
+  instance = google_compute_instance.bastion.name
+  policy_data = data.google_iam_policy.admin.policy_data
+}
+
+
 
 #########################
 #   Bastion-instanssi   #

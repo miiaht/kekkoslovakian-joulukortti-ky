@@ -11,6 +11,7 @@ variable "zone" {
   default = "us-central1-c"
 }
 
+variable "members" {}
 
 # Tietokannan databasejen tunnarit
 variable "henkilosto_database_username" {}
