@@ -51,6 +51,10 @@ resource "google_compute_firewall" "vpc_firewall" {
   name    = "kekkoskakkos-firewall-allow-iap"
   network = google_compute_network.vpc_network.id
 
+   allow {
+    protocol = "icmp"
+  }
+
   allow {
     protocol = "tcp"
     ports    = ["22"]
@@ -61,6 +65,26 @@ resource "google_compute_firewall" "vpc_firewall" {
   target_tags   = ["iap"]
 
 }
+
+### Luodaan Firewall-sääntö SSH:lle
+resource "google_compute_firewall" "vpc_firewall_ssh" {
+  name    = "kekkoskakkos-firewall-allow-ssh"
+  network = google_compute_network.vpc_network.id
+
+   allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh"]
+
+}
+
 
 ### Luodaan Bastion host
 resource "google_compute_instance" "bastion" {
@@ -82,7 +106,7 @@ resource "google_compute_instance" "bastion" {
   }
 
   service_account {
-    email  = google_service_account.default.email
+    email  = google_service_account.service_account.email
     scopes = var.scopes
   }
   
@@ -91,18 +115,18 @@ resource "google_compute_instance" "bastion" {
 
 
 ### Service Account
-resource "google_service_account" "default" {
+resource "google_service_account" "service_account" {
   account_id   = "service-account-id"
   display_name = "A service account that only Jane can interact with"
 }
 
-# ### IAM -admin oikeudet service accountille
-# resource "google_project_iam_member" "service_account_iam" {
-#   count   = length(var.service_account_iam_roles)
-#   project = var.project
-#   role    = element(var.service_account_iam_roles, count.index)
-#   member  = "serviceAccount:${google_service_account.service_account.email}"
-# }
+### IAM -admin oikeudet service accountille
+resource "google_project_iam_member" "service_account_iam" {
+  count   = length(var.service_account_iam_roles)
+  project = var.project
+  role    = element(var.service_account_iam_roles, count.index)
+  member  = "serviceAccount:${google_service_account.service_account.email}"
+}
 
 ### Annetaan IAP Tunnel User -luvat käyttäjille
 resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam" {
@@ -113,86 +137,88 @@ resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam" {
 }
 
 
-# #############
-# #   Router  #
-# #############
+#############
+#   Router  #
+#############
 
-# resource "google_compute_router" "router" {
-#   name       = "kekkoskakkos-router"
-#   network    = google_compute_network.vpc_network.id
+resource "google_compute_router" "router" {
+  name       = "kekkoskakkos-router"
+  network    = google_compute_network.vpc_network.id
 
-#   bgp {
-#     asn = 64514
-#   }
-# }
+  bgp {
+    asn = 64514
+  }
+}
 
-# ###########
-# #   NAT   #
-# ###########
+###########
+#   NAT   #
+###########
 
-# resource "google_compute_router_nat" "nat" {
-#   name                               = "kekkoskakkos-nat"
-#   router                             = google_compute_router.router.name
-#   region                             = var.region
-#   nat_ip_allocate_option             = "AUTO_ONLY"
-#   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+resource "google_compute_router_nat" "nat" {
+  name                               = "kekkoskakkos-nat"
+  router                             = google_compute_router.router.name
+  region                             = var.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
-#   log_config {
-#     enable = true
-#     filter = "ERRORS_ONLY"
-#   }
-# }
-
-
-# ####################################
-# #   Henkilöstöhallinta-instanssi   #
-# ####################################
-
-# resource "google_compute_instance" "henkilosto_instanssi" {
-#   name         = "henkilostohallinta"
-#   machine_type = "f1-micro"
-
-#   boot_disk {
-#     initialize_params {
-#       image = "debian-cloud/debian-9"
-#     }
-#   }
-
-#   network_interface {
-#     network = google_compute_network.vpc_network.id
-#     subnetwork = google_compute_subnetwork.subnet_private_bastion.id
-
-#     # access_config {
-#     #   // Ephemeral public IP
-#     # }
-#   }
-#   metadata_startup_script = file("startup-script.sh")
-# }
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
+}
 
 
-# ###########################
-# #   Reskontra-instanssi   #
-# ###########################
+####################################
+#   Henkilöstöhallinta-instanssi   #
+####################################
 
-# resource "google_compute_instance" "reskontra_instanssi" {
-#   name         = "reskontra"
-#   machine_type = "f1-micro"
+resource "google_compute_instance" "henkilosto_instanssi" {
+  name         = "henkilostohallinta"
+  machine_type = "f1-micro"
+  tags         =  ["ssh"]
 
-#   boot_disk {
-#     initialize_params {
-#       image = "debian-cloud/debian-9"
-#     }
-#   }
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
 
-#   network_interface {
-#     network = google_compute_network.vpc_network.id
-#     subnetwork = google_compute_subnetwork.subnet_private_bastion.id
-#     # access_config {
-#     #   // Ephemeral public IP
-#     # }
-#   }
-#   metadata_startup_script = file("startup-script.sh")
-# }
+  network_interface {
+    network = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.vpc_subnet.id
+
+    # access_config {
+    #   // Ephemeral public IP
+    # }
+  }
+  metadata_startup_script = file("startup-script.sh")
+}
+
+
+###########################
+#   Reskontra-instanssi   #
+###########################
+
+resource "google_compute_instance" "reskontra_instanssi" {
+  name         = "reskontra"
+  machine_type = "f1-micro"
+  tags         =  ["ssh"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.vpc_subnet.id
+    # access_config {
+    #   // Ephemeral public IP
+    # }
+  }
+  metadata_startup_script = file("startup-script.sh")
+}
 
 
 # # tarkastaa luodaanko instanssi,database, user: jos deploy_db (variables.tf -tiedostossa) on false niin ei luoda, jos taas true niin luodaan
