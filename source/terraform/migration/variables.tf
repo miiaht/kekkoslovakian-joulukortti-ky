@@ -11,7 +11,7 @@ variable "zone" {
   default = "us-central1-c"
 }
 
-variable "members" {}
+variable "member" {}
 
 # Tietokannan databasejen tunnarit
 variable "henkilosto_database_username" {}
@@ -31,13 +31,13 @@ variable "deploy_db" {
 # bastion variables #
 #####################
 
-variable "network" {
-  description = "Self link for the network on which the Bastion should live"
-}
+# variable "network" {
+#   description = "Self link for the network on which the Bastion should live"
+# }
 
-variable "subnet" {
-  description = "Self link for the subnet on which the Bastion should live. Can be private when using IAP"
-}
+# variable "subnet" {
+#   description = "Self link for the subnet on which the Bastion should live. Can be private when using IAP"
+# }
 
 variable "subnet_project" {
   description = "Project where the subnet exists, if different than the bastion project"
@@ -55,6 +55,8 @@ variable "service_account_name" {
   default     = "bastion"
   description = "The name of the service account instance"
 }
+
+variable "service_account_email"{}
 
 # variable "startup_script" {
 #   default     = ""

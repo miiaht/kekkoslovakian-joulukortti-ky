@@ -36,42 +36,108 @@ locals {
   metadata = (var.enable_oslogin == true ? { "enable-oslogin" : "TRUE" } : {})
 }
 
-resource "google_service_account" "bastion" {
-  account_id   = var.service_account_name
-  display_name = var.service_account_name
-}
+# resource "google_service_account" "bastion" {
+#   account_id   = var.service_account_name
+#   display_name = var.service_account_name
+# }
 
 resource "google_project_iam_member" "service_account" {
   count   = length(var.service_account_iam_roles)
   project = var.project
   role    = element(var.service_account_iam_roles, count.index)
-  member  = "serviceAccount:${google_service_account.bastion.email}"
+  member  = var.member
+  #member  = "serviceAccount:${google_service_account.bastion.email}"
 }
 
 resource "google_project_iam_member" "additional_service_account" {
   count   = length(var.additional_service_account_iam_roles)
   project = var.project
   role    = element(var.additional_service_account_iam_roles, count.index)
-  member  = "serviceAccount:${google_service_account.bastion.email}"
+  member  = var.member
+  #member  = "serviceAccount:${google_service_account.bastion.email}"
 }
 
-
-
-# IAM Policy IAP tunnelille
-
-data "google_iam_policy" "admin" {
-  binding {
-    role = "roles/iap.tunnelResourceAccessor"
-    members = var.members
-  }
+# MEILTÄ PUUTTUI GOOGLE_SERVICE_ACCOUNT KOKONAAN, JOHON ON VIITATTU KOODISSA
+resource "google_service_account" "bastion_host" { 
+  project      = var.project  
+  account_id   = "bastion-service-account" 
+  display_name = "Service Account for Bastion"
+  #email        = "bastion-service-account@iam.gserviceaccount.com"
 }
 
-resource "google_iap_tunnel_instance_iam_policy" "policy" {
+##################
+#  IAP Tunneli   # ### UUSI TUNNELI JA SEN FIREWALL
+##################
+
+resource "google_compute_firewall" "allow_from_iap_to_instances" {
+ 
   project = var.project
-  zone = var.zone
-  instance = google_compute_instance.bastion.name
-  policy_data = data.google_iam_policy.admin.policy_data
+  name    = "iap-ssh"
+  network = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  # https://cloud.google.com/iap/docs/using-tcp-forwarding#before_you_begin
+  # This is the netblock needed to forward to the instances
+  source_ranges = ["35.235.240.0/20"]
+  target_service_accounts = [google_service_account.bastion_host.email,
+  ]
+
+
 }
+#bastion-service-account@final-project-1-337107.iam.gserviceaccount.com
+
+resource "google_iap_tunnel_instance_iam_binding" "enable_iap" {
+  project  = var.project
+  zone     = var.zone
+  instance = google_compute_instance.bastion.id
+  role     = "roles/iap.tunnelResourceAccessor"
+  members  = [
+    "user:jpmheino@gmail.com",
+  ]
+}
+
+
+
+
+#####
+# ALLA VANHA FIREWALL + TUNNELI
+#
+########################
+# # Firewall-rule for IAP#   NÄITÄ OLI KAKS SAMANLAISTA, POISTIN TOISEN
+# ########################
+# resource "google_compute_firewall" "allow_iap_bastion" {
+#   project = var.project
+#   name    = "allow-iap-bastion"
+#   network = google_compute_network.vpc_network.id
+
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["22"]
+#   }
+
+#   # Allow SSH only from IAP
+#   source_ranges           = ["35.235.240.0/20"]
+#   target_service_accounts = [google_service_account.bastion.email]
+# }
+
+ 
+# data "google_iam_policy" "admin" {
+#   binding {
+#     role = "roles/iap.tunnelResourceAccessor"
+#     members = var.members
+#   }
+# }
+
+# resource "google_iap_tunnel_instance_iam_policy" "policy" {
+#   project = var.project
+#   zone = var.zone
+#   instance = google_compute_instance.bastion.name
+#   policy_data = data.google_iam_policy.admin.policy_data
+# }
 
 
 
@@ -86,13 +152,14 @@ resource "google_compute_instance" "bastion" {
 
   machine_type = var.machine_type
 
-  network_interface {
+  network_interface { #PUUTTUI "NETWORK"
+    network = google_compute_network.vpc_network.id
     subnetwork = google_compute_subnetwork.subnet_private_bastion.id
     #subnetwork_project = var.subnet_project
   }
 
   service_account {
-    email  = google_service_account.bastion.email
+    email  = google_service_account.bastion_host.email
     scopes = var.scopes
   }
 
@@ -108,40 +175,6 @@ resource "google_compute_instance" "bastion" {
   shielded_instance_config {
     enable_secure_boot = (var.shielded_vm == true ? true : false)
   }
-}
-
-# Allow SSHing into machines tagged "allow-ssh"
-resource "google_compute_firewall" "allow_ssh" {
-  project = var.project
-  name    = "allow-iap-ssh"
-  network = google_compute_network.vpc_network.id
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-# Allow SSH only from IAP
-  source_ranges           = ["35.235.240.0/20"]
-  target_service_accounts = [google_service_account.bastion.email]
-}
-
-########################
-# Firewall-rule for IAP#
-########################
-resource "google_compute_firewall" "allow_iap_bastion" {
-  project = var.project
-  name    = "allow-iap-bastion"
-  network = google_compute_network.vpc_network.id
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  # Allow SSH only from IAP
-  source_ranges           = ["35.235.240.0/20"]
-  target_service_accounts = [google_service_account.bastion.email]
 }
 
 
