@@ -2,12 +2,10 @@
 CREATE TABLE henkilostohallinta (
     id SERIAL PRIMARY KEY, 
     name VARCHAR(255) NOT NULL, 
-    person_id int, 
-    CONSTRAINT fk_person
-        FOREIGN KEY (person_id)
-            REFERENCES person(id)    
+    title VARCHAR(255) NOT NULL
     )
 
-INSERT INTO person (name, age, student) VALUES ('Elina', '31', 'true');
+INSERT INTO henkilostohallinta (name, title) VALUES ('Juukeli', 'postimerkinliimaaja');
+INSERT INTO henkilostohallinta (name, title) VALUES ('Pipsa', 'liimanojentaja');
 
-SELECT * FROM person;
+SELECT * FROM henkilostohallinta;
