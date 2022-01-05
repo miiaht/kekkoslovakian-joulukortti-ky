@@ -13,12 +13,12 @@ variable "zone" {
 
 variable "members" {}
 
-# # Tietokannan databasejen tunnarit
-# variable "henkilosto_database_username" {}
-# variable "henkilosto_database_password" {}
+# Tietokannan databasejen tunnarit
+variable "henkilosto_database_username" {}
+variable "henkilosto_database_password" {}
 
-# variable "reskontra_database_username" {}
-# variable "reskontra_database_password" {}
+variable "reskontra_database_username" {}
+variable "reskontra_database_password" {}
 
 # variable "deploy_db" {
 #   description = "Whether to deploy a Cloud SQL database or not."

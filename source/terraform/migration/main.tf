@@ -34,6 +34,7 @@ locals{
 
 ### Luodaan VPC-yhteys
 resource "google_compute_network" "vpc_network" {
+  provider                = google-beta
   name                    = "kekkoskakkos-vpc"
   auto_create_subnetworks = false
 }
@@ -169,7 +170,7 @@ resource "google_compute_router_nat" "nat" {
 
 
 ####################################
-#   Henkilöstöhallinta-instanssi   #
+#   Henkilöstöhallinta-VM-instanssi   #
 ####################################
 
 resource "google_compute_instance" "henkilosto_instanssi" {
@@ -195,9 +196,9 @@ resource "google_compute_instance" "henkilosto_instanssi" {
 }
 
 
-###########################
-#   Reskontra-instanssi   #
-###########################
+############################
+#  Reskontra-VM-instanssi  #
+############################
 
 resource "google_compute_instance" "reskontra_instanssi" {
   name         = "reskontra"
@@ -221,73 +222,77 @@ resource "google_compute_instance" "reskontra_instanssi" {
 }
 
 
-# # tarkastaa luodaanko instanssi,database, user: jos deploy_db (variables.tf -tiedostossa) on false niin ei luoda, jos taas true niin luodaan
+### Private IP -säännöt SQL:lle
 
-# #######################################
-# #   SQL-tietokansa Kekkoslovakialle   #
-# #######################################
+resource "google_compute_global_address" "private_ip_address" {
+  provider      = google-beta
+  name          = "private-ip-address"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = google_compute_network.vpc_network.id
+}
 
-# resource "google_sql_database_instance" "kekkoslovakia_tietokanta" {
-#   count            = var.deploy_db ? 1 : 0
-#   name             = "kekkoslovakia"
-#   database_version = "POSTGRES_13"
-#   region           = var.region
+resource "google_service_networking_connection" "private_vpc_connection" {
+  provider                = google-beta
+  network                 = google_compute_network.vpc_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
+} 
 
-#   settings {
-#     tier = "db-f1-micro" # postgresql tukee vain shared core machineja! tämä shared-core löytyy haminasta
-#     ip_configuration {
-#       ipv4_enabled = true
-#       authorized_networks {
-#         name  = "all"
-#         value = "0.0.0.0/0"
-#       }
-#     }
-#   }
-# }
+#######################################
+#   SQL-tietokanta Kekkoslovakialle   #
+#######################################
 
-# ###########################################
-# #   Henkiöstö-database SQL-tietokantaan   #
-# ###########################################
-
-# resource "google_sql_database" "henkilosto_database" {
-#   count      = var.deploy_db ? 1 : 0
-#   name       = "henkilöstö"
-#   project    = var.project
-#   instance   = google_sql_database_instance.kekkoslovakia_tietokanta[0].name
-#   depends_on = [google_sql_database_instance.kekkoslovakia_tietokanta]
-# }
-
-# resource "google_sql_user" "henkilosto_database_user" {
-#   count      = var.deploy_db ? 1 : 0
-#   project    = var.project
-#   name       = var.henkilosto_database_username
-#   instance   = google_sql_database_instance.kekkoslovakia_tietokanta[0].name
-#   password   = var.henkilosto_database_password
-#   depends_on = [google_sql_database.henkilosto_database]
-# }
+resource "google_sql_database_instance" "kekkoslovakia_sql_instanssi" {
+  provider         = google-beta
+  name             = "kekkoslovakia"
+  database_version = "POSTGRES_13"
+  region           = var.region
 
 
-# ###########################################
-# #   Reskontra-database SQL-tietokantaan   #
-# ###########################################
+  depends_on = [google_service_networking_connection.private_vpc_connection]
+
+  settings {
+    tier = "db-f1-micro"
+    disk_size = 10
+
+    ip_configuration {
+      ipv4_enabled    = false
+      private_network = google_compute_network.vpc_network.id
+    }
+  }
+}
+
+###########################################
+#   Henkiöstö-database SQL-tietokantaan   #
+###########################################
+
+resource "google_sql_database" "henkilosto_database" {
+  name       = "henkilosto-db"
+  instance   = google_sql_database_instance.kekkoslovakia_sql_instanssi.id
+}
+
+resource "google_sql_user" "henkilosto_database_user" {
+  name       = var.henkilosto_database_username
+  instance   = google_sql_database_instance.kekkoslovakia_sql_instanssi.id
+  password   = var.henkilosto_database_password
+}
 
 
-# resource "google_sql_database" "reskontra_database" {
-#   count    = var.deploy_db ? 1 : 0
-#   name     = "reskontra"
-#   project  = var.project
-#   instance = google_sql_database_instance.kekkoslovakia_tietokanta[0].name
+###########################################
+#   Reskontra-database SQL-tietokantaan   #
+###########################################
 
-#   depends_on = [google_sql_database_instance.kekkoslovakia_tietokanta]
-# }
 
-# resource "google_sql_user" "reskontra_database_user" {
-#   count    = var.deploy_db ? 1 : 0
-#   project  = var.project
-#   name     = var.reskontra_database_username
-#   instance = google_sql_database_instance.kekkoslovakia_tietokanta[0].name
-#   password = var.reskontra_database_password
+resource "google_sql_database" "reskontra_database" {
+  name     = "reskontra"
+  instance = google_sql_database_instance.kekkoslovakia_sql_instanssi.id
+}
 
-#   depends_on = [google_sql_database.reskontra_database]
-# }
+resource "google_sql_user" "reskontra_database_user" {
+  name     = var.reskontra_database_username
+  instance = google_sql_database_instance.kekkoslovakia_sql_instanssi.id
+  password = var.reskontra_database_password
+}
 
