@@ -12,11 +12,34 @@ variable "zone" {
   default = "us-central1-c"
 }
 
+### NETWORKING
+variable "vpc_name"{
+  default    = "kekkoskakkos-vpc"
+}
+variable "subnet_name"{
+  default    = "kekkoskakkos-subnet"
+}
+
+variable "private_name"{
+  default    = "kekkoskakkos-priva-ip-block"
+}
+
+variable "firewall_name_iap" {
+  default    = "kekkoskakkos-firewall-allow-iap"  
+}
+
+variable "firewall_name_ssh" {
+  default    = "kekkoskakkos-firewall-allow-ssh"  
+}
+
+variable "firewall_name_sql" {
+  default    = "sql"  
+}
+
 # Tietokannan databasejen tunnarit
 
-variable "user" {}
-
-variable "password" {}
+# variable "user" {}
+# variable "password" {}
 
 variable "henkilosto_database_username" {}
 variable "henkilosto_database_password" {}

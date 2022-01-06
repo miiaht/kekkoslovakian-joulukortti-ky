@@ -38,40 +38,41 @@ locals {
 
 ### VPC-yhteys
 resource "google_compute_network" "vpc_network" {
-  provider                = google-beta
+  provider                = google-beta  
+  name                    = var.vpc_name
   routing_mode            = "GLOBAL"
-  name                    = "kekkoskakkos-vpc"
   auto_create_subnetworks = false
 }
 
 ### Subnet
 resource "google_compute_subnetwork" "vpc_subnet" {
-  name          = "kekkoskakkos-subnet"
-  ip_cidr_range = "10.0.0.0/16"
-  region        = var.region
-  network       = google_compute_network.vpc_network.id
+  name                    = var.subnet_name  
+  region                  = var.region
+  network                 = google_compute_network.vpc_network.id
+  ip_cidr_range           = "10.0.0.0/16"
 }
 
 ### Blockillinen priva IP-osoitteita
 resource "google_compute_global_address" "vpc_private_ip_block" {
-  name         = "kekkoskakkos-priva-ip-block"
-  purpose      = "VPC_PEERING"
-  address_type = "INTERNAL"
-  ip_version   = "IPV4"
-  prefix_length = 20
-  network       = google_compute_network.vpc_network.self_link
+  name                    = var.private_name
+  network                 = google_compute_network.vpc_network.self_link
+  purpose                 = "VPC_PEERING"
+  address_type            = "INTERNAL"
+  ip_version              = "IPV4"
+  prefix_length           = 20
+  
 }
 
 ### Priva service access instanssien kommunikoimiseen sisäisessä verkossa
 resource "google_service_networking_connection" "vpc_private_connection" {
-  network                 = google_compute_network.vpc_network.self_link
-  service                 = "servicenetworking.googleapis.com"
+  network                 = google_compute_network.vpc_network.self_link  
   reserved_peering_ranges = [google_compute_global_address.vpc_private_ip_block.name]
+  service                 = "servicenetworking.googleapis.com"
 }
 
 ### Firewall-sääntö IAP:lle
 resource "google_compute_firewall" "vpc_firewall" {
-  name    = "kekkoskakkos-firewall-allow-iap"
+  name    = var.firewall_name_iap
   network = google_compute_network.vpc_network.id
 
   allow {
@@ -90,7 +91,7 @@ resource "google_compute_firewall" "vpc_firewall" {
 
 ### Firewall-sääntö SSH:lle
 resource "google_compute_firewall" "vpc_firewall_ssh" {
-  name    = "kekkoskakkos-firewall-allow-ssh"
+  name    = var.firewall_name_ssh
   network = google_compute_network.vpc_network.id
   direction   = "INGRESS"
 
@@ -245,6 +246,47 @@ resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam_res" {
   members  = var.members
 }
 
+### Testi-SQL-servu
+resource "google_compute_instance" "sql_instanssi" {
+  name         = "sql"
+  machine_type = "f1-micro"
+  tags         = ["sql"]
+
+  boot_disk {
+    initialize_params {
+      image = "windows-sql-cloud/sql-std-2019-win-2019"
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.vpc_subnet.id
+    # access_config {
+    #   // Ephemeral public IP
+    # }
+  }
+  #metadata_startup_script = file("startup-script.sh")
+}
+
+### Firewall-sääntö sql:lle
+resource "google_compute_firewall" "vpc_firewall_sql" {
+  name    = var.firewall_name_sql
+  network = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["1433"]
+  }
+
+  direction   = "INGRESS"
+  target_tags   = ["sql"]
+  source_ranges = ["0.0.0.0/0"]
+}
+
 # Ei ehkä hyödyllinen? ks.myös service accounts
 # ### Proxy -instanssi SQL:lle
 # resource "google_compute_instance" "db_proxy" {
@@ -312,8 +354,12 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
       seconds = 59
     }
 
+    #kuukauden viimeinen sunnuntai
     monthly {
-      day_of_week = "SUNDAY"
+      week_day_of_month {
+        week_ordinal = -1
+        day_of_week = "SUNDAY"
+      }
     }
   }
 }
