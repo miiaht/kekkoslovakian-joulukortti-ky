@@ -12,9 +12,12 @@ variable "zone" {
   default = "us-central1-c"
 }
 
-variable "members" {}
-
 # Tietokannan databasejen tunnarit
+
+variable "user" {}
+
+variable "password" {}
+
 variable "henkilosto_database_username" {}
 variable "henkilosto_database_password" {}
 
@@ -43,7 +46,7 @@ variable "image" {
 
 variable "enable_oslogin" {
   description = "Enable OS Login for SSH access"
-  default = true
+  default     = true
 }
 
 variable "service_account_iam_roles" {
