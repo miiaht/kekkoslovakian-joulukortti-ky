@@ -26,9 +26,11 @@ def rivinhakija(request):
             dict["tervehdysteksti"] = tuple[2]
             dict["vastaanottajanemail"] = tuple[3]
             dict["hasbeenread"] = tuple[4]
+            dict["datecreated"] = tuple[5]
+            dict["kuvaurl"] = tuple[6]
             items.append(dict)
 
-        jsoned = json.dumps(items, indent = 4) 
+        jsoned = json.dumps(items, indent = 4, sort_keys=True, default=str) 
         return jsoned
             
         cursor.close()
