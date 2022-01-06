@@ -175,6 +175,7 @@ resource "google_compute_instance" "bastion" {
   }
 }
 
+
 ### IAP-lupa bastioniin
 resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam" {
   zone     = var.zone
@@ -244,44 +245,79 @@ resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam_res" {
   members  = var.members
 }
 
-### Proxy -instanssi SQL:lle
-resource "google_compute_instance" "db_proxy" {
-  name                      = "kekkoslovakia-db-proxy"
-  machine_type              = "f1-micro"
-  zone                      = var.zone
-  desired_status            = "RUNNING"
-  allow_stopping_for_update = true
-  tags = ["ssh"]
-  boot_disk {
-    initialize_params {
-      # Container-Optimized OS
-      image = "cos-cloud/cos-stable" 
-      size  = 10                
-      type  = "pd-ssd"             
+# Ei ehkä hyödyllinen? ks.myös service accounts
+# ### Proxy -instanssi SQL:lle
+# resource "google_compute_instance" "db_proxy" {
+#   name                      = "kekkoslovakia-db-proxy"
+#   machine_type              = "f1-micro"
+#   zone                      = var.zone
+#   desired_status            = "RUNNING"
+#   allow_stopping_for_update = true
+#   tags = ["ssh"]
+#   boot_disk {
+#     initialize_params {
+#       # Container-Optimized OS
+#       image = "cos-cloud/cos-stable" 
+#       size  = 10                
+#       type  = "pd-ssd"             
+#     }
+#   }
+#   metadata = {
+#     enable-oslogin = "TRUE"
+#   }
+#   metadata_startup_script = templatefile("run_cloud_sql_proxy.tpl", {
+#     "db_instance_name"    = "kekkoslovakia-db-proxy",
+#     "service_account_key" = base64decode(google_service_account_key.key.private_key),
+#     })
+      
+#   network_interface {
+#     network    = google_compute_network.vpc_network.id
+#     subnetwork = google_compute_subnetwork.vpc_subnet.id
+#     #access_config must be set for the proxy to get a public IP, even if the block is empty
+#     access_config {}
+#   }
+#   scheduling {
+#     on_host_maintenance = "MIGRATE"
+#   }
+#   service_account {
+#     #email = "serviceAccount:${google_service_account.service_account.email}"
+#     scopes = ["cloud-platform"]
+#   }
+# }
+
+### Automaattiset päivitykset instansseihin
+resource "google_os_config_patch_deployment" "instanssi_patch" {
+  patch_deployment_id = "instanssi-patch-deploy"
+
+  instance_filter {
+    #Kaikki kerralla?
+    all = true
+  }
+
+  patch_config {
+    yum {
+      security = true
+      minimal = true
     }
   }
-  metadata = {
-    enable-oslogin = "TRUE"
-  }
-  metadata_startup_script = templatefile("run_cloud_sql_proxy.tpl", {
-    "db_instance_name"    = "kekkoslovakia-db-proxy",
-    "service_account_key" = base64decode(google_service_account_key.key.private_key),
-    })
-      
-  network_interface {
-    network    = google_compute_network.vpc_network.id
-    subnetwork = google_compute_subnetwork.vpc_subnet.id
-    #access_config must be set for the proxy to get a public IP, even if the block is empty
-    access_config {}
-  }
-  scheduling {
-    on_host_maintenance = "MIGRATE"
-  }
-  service_account {
-    #email = "serviceAccount:${google_service_account.service_account.email}"
-    scopes = ["cloud-platform"]
+
+  recurring_schedule {
+    time_zone {
+      id = "Europe/Helsinki"
+    }
+
+    time_of_day {
+      hours = 23
+      minutes = 59
+      seconds = 59
+    }
+
+    monthly {
+      day_of_week = "SUNDAY"
+    }
   }
 }
+
 
 ####################
 # Service Accounts #
@@ -301,34 +337,27 @@ resource "google_project_iam_member" "service_account_iam" {
   member  = "serviceAccount:${google_service_account.service_account.email}"
 }
 
-### Proxy Service Account SQL-tietokannalle
-resource "google_service_account" "proxy_account" {
-  account_id = "kekkoslovakia-proxy-sa"
-}
+# ### Proxy Service Account SQL-tietokannalle
+# resource "google_service_account" "proxy_account" {
+#   account_id = "kekkoslovakia-proxy-sa"
+# }
 
-### SQL Editor -IAM-rooli Proxy-accountille
-resource "google_project_iam_member" "role" {
-  project = var.project
-  role   = "roles/cloudsql.editor"
-  member = "serviceAccount:${google_service_account.proxy_account.email}"
-}
+# ### SQL Editor -IAM-rooli Proxy-accountille
+# resource "google_project_iam_member" "role" {
+#   project = var.project
+#   role   = "roles/cloudsql.editor"
+#   member = "serviceAccount:${google_service_account.proxy_account.email}"
+# }
 
-### Avain Proxy-accountille
-resource "google_service_account_key" "key" {
-  service_account_id = google_service_account.proxy_account.name
-}
-
-
+# ### Avain Proxy-accountille
+# resource "google_service_account_key" "key" {
+#   service_account_id = google_service_account.proxy_account.name
+# }
 
 
 #######################################
 #   SQL-tietokanta Kekkoslovakialle   #
 #######################################
-
-resource "google_sql_database" "main" {
-  name     = "main"
-  instance = google_sql_database_instance.kekkoslovakia_sql_instanssi.name
-}
 
 ### Kekkoslovakia db-instanssi
 resource "google_sql_database_instance" "kekkoslovakia_sql_instanssi" {
@@ -349,12 +378,6 @@ resource "google_sql_database_instance" "kekkoslovakia_sql_instanssi" {
       private_network = google_compute_network.vpc_network.self_link
     }
   }
-}
-
-resource "google_sql_user" "db_user" {
-  name     = var.user
-  instance = google_sql_database_instance.kekkoslovakia_sql_instanssi.name
-  password = var.password
 }
 
 ### Henkiöstö-database
