@@ -13,27 +13,27 @@ variable "zone" {
 }
 
 ### NETWORKING
-variable "vpc_name"{
-  default    = "kekkoskakkos-vpc"
+variable "vpc_name" {
+  default = "kekkoskakkos-vpc"
 }
-variable "subnet_name"{
-  default    = "kekkoskakkos-subnet"
+variable "subnet_name" {
+  default = "kekkoskakkos-subnet"
 }
 
-variable "private_name"{
-  default    = "kekkoskakkos-priva-ip-block"
+variable "private_name" {
+  default = "kekkoskakkos-priva-ip-block"
 }
 
 variable "firewall_name_iap" {
-  default    = "kekkoskakkos-firewall-allow-iap"  
+  default = "kekkoskakkos-firewall-allow-iap"
 }
 
 variable "firewall_name_ssh" {
-  default    = "kekkoskakkos-firewall-allow-ssh"  
+  default = "kekkoskakkos-firewall-allow-ssh"
 }
 
 variable "firewall_name_sql" {
-  default    = "sql"  
+  default = "sql"
 }
 
 # Tietokannan databasejen tunnarit
@@ -78,6 +78,8 @@ variable "service_account_iam_roles" {
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
     "roles/monitoring.viewer",
+    "roles/compute.loadBalancerAdmin",
+    "roles/compute.instanceAdmin.v1",
   ]
   description = "List of IAM roles to assign to the service account."
 }

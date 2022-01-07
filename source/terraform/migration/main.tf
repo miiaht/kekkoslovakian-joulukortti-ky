@@ -15,16 +15,16 @@ terraform {
 
 provider "google" {
   credentials = file(var.credentials_file)
-  project = var.project
-  region  = var.region
-  zone    = var.zone
+  project     = var.project
+  region      = var.region
+  zone        = var.zone
 }
 
 provider "google-beta" {
   credentials = file(var.credentials_file)
-  project = var.project
-  region  = var.region
-  zone    = var.zone
+  project     = var.project
+  region      = var.region
+  zone        = var.zone
 }
 
 ### OS-Login
@@ -38,7 +38,7 @@ locals {
 
 ### VPC-yhteys
 resource "google_compute_network" "vpc_network" {
-  provider                = google-beta  
+  provider                = google-beta
   name                    = var.vpc_name
   routing_mode            = "GLOBAL"
   auto_create_subnetworks = false
@@ -46,26 +46,26 @@ resource "google_compute_network" "vpc_network" {
 
 ### Subnet
 resource "google_compute_subnetwork" "vpc_subnet" {
-  name                    = var.subnet_name  
-  region                  = var.region
-  network                 = google_compute_network.vpc_network.id
-  ip_cidr_range           = "10.0.0.0/16"
+  name          = var.subnet_name
+  region        = var.region
+  network       = google_compute_network.vpc_network.id
+  ip_cidr_range = "10.0.0.0/16"
 }
 
 ### Blockillinen priva IP-osoitteita
 resource "google_compute_global_address" "vpc_private_ip_block" {
-  name                    = var.private_name
-  network                 = google_compute_network.vpc_network.self_link
-  purpose                 = "VPC_PEERING"
-  address_type            = "INTERNAL"
-  ip_version              = "IPV4"
-  prefix_length           = 20
-  
+  name          = var.private_name
+  network       = google_compute_network.vpc_network.self_link
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  ip_version    = "IPV4"
+  prefix_length = 20
+
 }
 
 ### Priva service access instanssien kommunikoimiseen sisäisessä verkossa
 resource "google_service_networking_connection" "vpc_private_connection" {
-  network                 = google_compute_network.vpc_network.self_link  
+  network                 = google_compute_network.vpc_network.self_link
   reserved_peering_ranges = [google_compute_global_address.vpc_private_ip_block.name]
   service                 = "servicenetworking.googleapis.com"
 }
@@ -81,7 +81,7 @@ resource "google_compute_firewall" "vpc_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "443"]
+    ports    = ["22", "443", "80"]
   }
 
   source_ranges = ["35.235.240.0/20"]
@@ -91,9 +91,9 @@ resource "google_compute_firewall" "vpc_firewall" {
 
 ### Luodaan Firewall-sääntö SSH:lle
 resource "google_compute_firewall" "vpc_firewall_ssh" {
-  name    = var.firewall_name_ssh
-  network = google_compute_network.vpc_network.id
-  direction   = "INGRESS"
+  name      = var.firewall_name_ssh
+  network   = google_compute_network.vpc_network.id
+  direction = "INGRESS"
 
   allow {
     protocol = "icmp"
@@ -105,8 +105,8 @@ resource "google_compute_firewall" "vpc_firewall_ssh" {
   }
 
   # Ei ehkä tarvita ?
-  #source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["ssh"]
+  source_ranges = ["0.0.0.0/0"]
+  target_tags = ["ssh"]
 }
 
 ### Private IP -säännöt SQL:lle
@@ -169,7 +169,12 @@ resource "google_compute_instance" "bastion" {
   }
   network_interface {
     subnetwork = google_compute_subnetwork.vpc_subnet.id
+    access_config {
+      // Ephemeral public IP
+    }
   }
+  metadata_startup_script = file("apache.sh")
+
   service_account {
     email  = google_service_account.service_account.email
     scopes = var.scopes
@@ -266,6 +271,10 @@ resource "google_compute_instance" "sql_instanssi" {
     # }
   }
   #metadata_startup_script = file("startup-script.sh")
+  service_account {
+    #email  = "serviceAccount:${google_service_account.service_account.email}"
+    scopes = var.scopes
+  }
 }
 
 ### Firewall-sääntö sql:lle
@@ -282,7 +291,7 @@ resource "google_compute_firewall" "vpc_firewall_sql" {
     ports    = ["1433"]
   }
 
-  direction   = "INGRESS"
+  direction     = "INGRESS"
   target_tags   = ["sql"]
   source_ranges = ["0.0.0.0/0"]
 }
@@ -311,7 +320,7 @@ resource "google_compute_firewall" "vpc_firewall_sql" {
 #     "db_instance_name"    = "kekkoslovakia-db-proxy",
 #     "service_account_key" = base64decode(google_service_account_key.key.private_key),
 #     })
-      
+
 #   network_interface {
 #     network    = google_compute_network.vpc_network.id
 #     subnetwork = google_compute_subnetwork.vpc_subnet.id
@@ -339,7 +348,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
   patch_config {
     yum {
       security = true
-      minimal = true
+      minimal  = true
     }
   }
 
@@ -349,7 +358,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
     }
 
     time_of_day {
-      hours = 23
+      hours   = 23
       minutes = 59
       seconds = 59
     }
@@ -358,7 +367,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
     monthly {
       week_day_of_month {
         week_ordinal = -1
-        day_of_week = "SUNDAY"
+        day_of_week  = "SUNDAY"
       }
     }
   }
@@ -415,9 +424,9 @@ resource "google_sql_database_instance" "kekkoslovakia_sql_instanssi" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 
   settings {
-    tier      = "db-f1-micro"
+    tier              = "db-f1-micro"
     availability_type = "REGIONAL"
-    disk_size = 10
+    disk_size         = 10
 
     ip_configuration {
       ipv4_enabled    = false
