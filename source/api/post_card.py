@@ -21,8 +21,8 @@ def postcard(request):
         receiver = request_json["receiver"]
 
 
-        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, hasbeenread, kuvaurl) VALUES (%s, %s, %s, %s, %s)"
-        data = (sender, message, receiver,"t", "kuvaurl")
+        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
+        data = (sender, message, receiver, "kuvaurl")
         cursor.execute(SQL, data)
         con.commit()
     
