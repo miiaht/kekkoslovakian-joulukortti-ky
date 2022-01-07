@@ -80,6 +80,7 @@ variable "service_account_iam_roles" {
     "roles/monitoring.viewer",
     "roles/compute.loadBalancerAdmin",
     "roles/compute.instanceAdmin.v1",
+    "roles/iam.serviceAccountUser",
   ]
   description = "List of IAM roles to assign to the service account."
 }

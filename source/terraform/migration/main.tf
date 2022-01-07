@@ -253,7 +253,7 @@ resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam_res" {
 
 ### Testi-SQL-servu
 resource "google_compute_instance" "sql_instanssi" {
-  name         = "sql"
+  name         = "sql" #pitääkö muuttaa nimeä-> windows-server
   machine_type = "f1-micro"
   tags         = ["sql"]
 
