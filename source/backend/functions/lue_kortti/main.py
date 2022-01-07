@@ -4,6 +4,7 @@ import os
 import json
 import flask
 
+# ENTRYPOINT:
 def rivinhakija(request):
 
     con = None  
@@ -36,20 +37,22 @@ def rivinhakija(request):
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
 
-            dict = {}
-            dict["id"] = str(result[0])
-            dict["lahettaja"] = result[1]
-            dict["tervehdysteksti"] = result[2]
-            dict["vastaanottajanemail"] = result[3]
-            dict["hasbeenread"] = result[4]
-            dict["datecreated"] = result[5]
-            dict["kuvaurl"] = result[6]
+            # dict = {}
+            # dict["id"] = str(result[0])
+            # dict["lahettaja"] = result[1]
+            # dict["tervehdysteksti"] = result[2]
+            # dict["vastaanottajanemail"] = result[3]
+            # dict["hasbeenread"] = result[4]
+            # dict["datecreated"] = result[5]
+            # dict["kuvaurl"] = result[6]
 
-            jsoned = json.dumps(dict, indent = 4, sort_keys=False, default=str) 
+            # jsoned = json.dumps(dict, indent = 4, sort_keys=False, default=str) 
             
             cursor.close()
 
-            return jsoned
+            # return jsoned
+            return html_kortti(result[1], result[2], result[6])
+
 
         else:
             response_msg = "Haku ok, mutta toiminto ei onnistu"
@@ -65,3 +68,19 @@ def rivinhakija(request):
     finally:
         if con is not None:
             con.close()
+
+
+def html_kortti(lahettaja, teksti, kuvan_url):
+    kortti = f"<!doctype html>\
+        <html>\
+            <head>\
+                <title>Hyvää joulua!</title>\
+            </head>\
+            <body>\
+                <p>{teksti}</p>\
+                <p>{kuvan_url}</p>\
+                <p>{lahettaja}</p>\
+            </body>\
+        </html>"
+
+    return kortti
