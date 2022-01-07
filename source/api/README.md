@@ -1,2 +1,5 @@
-# Placeholder README.md
-Näihin vois dokumentoida kansioiden sisältöä edes yleisellä tasolla jos jaksaa ja ehtii.
+# Kekkos-API
+Rajapinta välittää palvelun frontendin (Cloud Run -kontti) pyynnöt backendiin (Cloud Functions):
+- hae-kaikki (GET) palauttaa tiedot kaikista korteista (myös luetuista)
+- hae-yksi (GET) palauttaa asiakkaalle tämän vastaanottaman kortin
+- lisaa kortti (POST) lisää kortin järjestelmään
