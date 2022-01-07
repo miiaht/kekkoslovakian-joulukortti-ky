@@ -1,3 +1,7 @@
+**.hcl
+**.terraform/
+
+**secrets/
 database.ini
 **database*
 data/
