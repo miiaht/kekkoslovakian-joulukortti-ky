@@ -10,8 +10,9 @@ schemes:
 produces:
   - application/json
 
-# hae kaikki kortit
 paths:
+  # -------------------------------------------------------------------------------------------------
+  # funktio: hae kaikki korttien tiedot tietokannasta ja palauta json-muodossa
   /all:
     get:
       summary: hakee kaikkien postikorttien tiedot tietokannasta
@@ -19,7 +20,7 @@ paths:
       x-google-backend:
         # tähän voi kirjoittaa entrypointin muistiin, jos main.py sisältää useamman funktion
         # entrypoint: 
-        address: https://kirjoita_funktion_url_tähän
+        address: https://us-central1-final-project-1-337107.cloudfunctions.net/testi-get-all
       
       # poista komentti tästä, jos halutaan api-key:
       # security:
@@ -29,6 +30,9 @@ paths:
           description: Haku onnistui (hae-kaikki)
           schema:
             type: string
+  
+  # -------------------------------------------------------------------------------------------------
+  # funktio: lue yksi kortti -> palauta kortille generoitu html-tiedosto ja merkkaa tietokantaan luetuksi
   /single:
     get:
       summary: hakee asiakkaan saaman kortin
@@ -36,7 +40,7 @@ paths:
       x-google-backend:
         # tähän voi kirjoittaa entrypointin muistiin, jos main.py sisältää useamman funktion
         # entrypoint: 
-        address: https://kirjoita_funktion_url_tähän
+        address: https://us-central1-final-project-1-337107.cloudfunctions.net/testi-get-one
       
       # poista komentti tästä, jos halutaan api-key:
       # security:
@@ -46,14 +50,17 @@ paths:
           description: Haku onnistui (hae-yksi)
           schema:
             type: string
-    /add:
+  
+  # -------------------------------------------------------------------------------------------------
+  # funktio: lisää asiakkaan tilaama kortti tietokantaan:
+  /add:
     post:
       summary: lisää joulukortin järjestelmään
       operationId: lisaa-kortti
       x-google-backend:
         # tähän voi kirjoittaa entrypointin muistiin, jos main.py sisältää useamman funktion
         # entrypoint: 
-        address: https://kirjoita_funktion_url_tähän
+        address: https://us-central1-final-project-1-337107.cloudfunctions.net/testi-postcard
       
       # poista komentti tästä, jos halutaan api-key:
       # security:
@@ -63,6 +70,7 @@ paths:
           description: Toiminto onnistui (lisaa-kortti)
           schema:
             type: string
+    # -------------------------------------------------------------------------------------------------
 
 # Jos haluaa api-keyn:
 # securityDefinitions:
