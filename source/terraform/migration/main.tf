@@ -56,7 +56,7 @@ resource "google_compute_firewall" "vpc_firewall" {
   }
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "443"]
   }
   source_ranges = ["35.235.240.0/20"]
   direction     = "INGRESS"
@@ -64,8 +64,6 @@ resource "google_compute_firewall" "vpc_firewall" {
 
 }
 
-#alla olevan kanssa ping ei toimi. SSH yhteys toimii kyllä ilman tai tämän kanssa
-#epäkommentoin tämän ja testaan toimiiiko ping. muutan henkilöstö instanssin tagia ssh:ksi
 ### Luodaan Firewall-sääntö SSH:lle
 resource "google_compute_firewall" "vpc_firewall_ssh" {
   name    = "kekkoskakkos-firewall-allow-ssh"
