@@ -3,8 +3,10 @@ import requests
 import os
 import json
 import flask
+import datetime
+from google.cloud import storage
 
-# ENTRYPOINT:
+# ENTRYPOINT: rivinhakija
 def rivinhakija(request):
 
     con = None  
@@ -36,22 +38,26 @@ def rivinhakija(request):
             
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
-
-            # dict = {}
-            # dict["id"] = str(result[0])
-            # dict["lahettaja"] = result[1]
-            # dict["tervehdysteksti"] = result[2]
-            # dict["vastaanottajanemail"] = result[3]
-            # dict["hasbeenread"] = result[4]
-            # dict["datecreated"] = result[5]
-            # dict["kuvaurl"] = result[6]
-
-            # jsoned = json.dumps(dict, indent = 4, sort_keys=False, default=str) 
-            
             cursor.close()
 
-            # return jsoned
-            return html_kortti(result[1], result[2], result[6])
+            # kortin tiedot:
+            # ---------------------------------------------------------
+            # id = result[0], huom int!
+            # lahettäjä = result[1]
+            # tervehdysteksti = result[2]
+            # vastaanottajan email = result[3]
+            # hasbeenread = result[4]
+            # date created = result[5]
+            # kuvan url tai nimi = result[6]
+
+            lahettaja, tervehdys = result[1], result[2]
+            
+            # muodostetaan kuvan url
+            bucket_name = "kekkos-ampari123"
+            blob_name = "kuva1.png"
+            url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
+
+            return html_kortti(lahettaja, tervehdys, url)
 
 
         else:
@@ -63,7 +69,7 @@ def rivinhakija(request):
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
 
-        return "Sori, ei toimi..."
+        return f"Sori, ei toimi: {error}"
 
     finally:
         if con is not None:
@@ -71,16 +77,19 @@ def rivinhakija(request):
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
-    kortti = f"<!doctype html>\
-        <html>\
-            <head>\
-                <title>Hyvää joulua!</title>\
-            </head>\
-            <body>\
-                <p>{teksti}</p>\
-                <p>{kuvan_url}</p>\
-                <p>{lahettaja}</p>\
-            </body>\
-        </html>"
+    kortti = f'<!doctype html>\
+    <html>\
+        <head>\
+            <title>Hyvää joulua!</title>\
+        </head>\
+        <body style="background-color:#f7f4eb;">\
+            <h1>{teksti}</h1>\
+            <p>\
+                <img src="{kuvan_url}" alt="christmas_image" style="max-width:100%;height:auto;">\
+            </p>\
+            <h2>{lahettaja}</h2>\
+                <h5>Kekkoslovakian Joulukortit Ky</h5>\
+        </body>\
+    </html>'
 
     return kortti
