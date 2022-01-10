@@ -6,7 +6,7 @@ def html_kortti(lahettaja, teksti, kuvan_url):
             <head>\
                 <title>Hyvää joulua!</title>\
             </head>\
-            <bodystyle="background-color:#f7f4eb;">\
+            <body style="background-color:#f7f4eb;">\
                 <h1>{teksti}</h1>\
                 <p>\
                     <img src="{kuvan_url}"alt="christmas_image" style="max-width:100%;height:auto;">\
