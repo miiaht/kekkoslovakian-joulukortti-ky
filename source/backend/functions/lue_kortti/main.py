@@ -1,20 +1,18 @@
 import psycopg2
 import requests
 import os
-import json
 import flask
+from google.cloud import storage, secretmanager
 
-# ENTRYPOINT:
+# ENTRYPOINT: rivinhakija
 def rivinhakija(request):
 
     con = None  
     
     try:
-        # TODO: muuta -> tiedot haetaan Secret Managerista
-        dbname = os.environ.get('DBNAME')
-        user = os.environ.get('USER')
-        password = os.environ.get('PASSWORD')
-        db_socket_dir = os.environ.get('DB_SOCKET_DIR')
+        project_id = os.environ.get('PROJECT_ID')
+
+        dbname, password, db_socket_dir, user, bucket_name = hae_kirjautumistiedot(project_id)
         
         # muodostetaan yhteys ja luodaan kursori
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
@@ -37,50 +35,90 @@ def rivinhakija(request):
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
 
-            # dict = {}
-            # dict["id"] = str(result[0])
-            # dict["lahettaja"] = result[1]
-            # dict["tervehdysteksti"] = result[2]
-            # dict["vastaanottajanemail"] = result[3]
-            # dict["hasbeenread"] = result[4]
-            # dict["datecreated"] = result[5]
-            # dict["kuvaurl"] = result[6]
+            # tarkistetaan, onko kortti jo luettu
+            if result[4]:
+                print("Korttia yritetään lukea, vaikka se on jo luettu")
+                return "Kortti on jo luettu."
 
-            # jsoned = json.dumps(dict, indent = 4, sort_keys=False, default=str) 
+            # kortin tiedot tuplessa:
+            # ---------------------------------------------------------
+            # id = result[0], huom int!
+            # lahettäjä = result[1]
+            # tervehdysteksti = result[2]
+            # vastaanottajan email = result[3]
+            # hasbeenread = result[4]
+            # date created = result[5]
+            # kuvan url tai nimi = result[6]
+
+            lahettaja, tervehdys, blob_name = result[1], result[2], result[6]
             
-            cursor.close()
+            # muodostetaan kuvan url
+            url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
 
-            # return jsoned
-            return html_kortti(result[1], result[2], result[6])
+            # merkitään kortti luetuksi
+            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE id= %s;"
+            
+            cursor.execute(SQL,haettava_id)
+            con.commit()
 
+            return html_kortti(lahettaja, tervehdys, url)
 
         else:
             response_msg = "Haku ok, mutta toiminto ei onnistu"
             return response_msg
-
-            cursor.close()
     
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
 
-        return "Sori, ei toimi..."
+        return f"Sori, ei toimi: {error}"
 
     finally:
+        cursor.close()
+        
         if con is not None:
             con.close()
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
-    kortti = f"<!doctype html>\
-        <html>\
-            <head>\
-                <title>Hyvää joulua!</title>\
-            </head>\
-            <body>\
-                <p>{teksti}</p>\
-                <p>{kuvan_url}</p>\
-                <p>{lahettaja}</p>\
-            </body>\
-        </html>"
+    kortti = f'<!doctype html>\
+    <html>\
+        <head>\
+            <title>Hyvää joulua!</title>\
+        </head>\
+        <body style="background-color:#f7f4eb;">\
+            <h1>{teksti}</h1>\
+            <p>\
+                <img src="{kuvan_url}" alt="christmas_image" style="max-width:100%;height:auto;">\
+            </p>\
+            <h2>{lahettaja}</h2>\
+                <h5>Kekkoslovakian Joulukortit Ky</h5>\
+        </body>\
+    </html>'
 
     return kortti
+
+
+def hae_kirjautumistiedot(project_id):
+    client = secretmanager.SecretManagerServiceClient()
+    
+    path_db_name = f"projects/{project_id}/secrets/kortti-db-name/versions/latest"
+    encr_db_name = client.access_secret_version(request={"name": path_db_name})
+    db_name = encr_db_name.payload.data.decode("UTF-8")
+
+    path_db_passwd = f"projects/{project_id}/secrets/kortti-db-pw/versions/latest"
+    encr_db_passwd = client.access_secret_version(request={"name": path_db_passwd})
+    db_passwd = encr_db_passwd.payload.data.decode("UTF-8")
+
+    path_db_socker_dir = f"projects/{project_id}/secrets/kortti-db-socket-dir/versions/latest"
+    encr_db_socket = client.access_secret_version(request={"name": path_db_socker_dir})
+    db_socket_dir = encr_db_socket.payload.data.decode("UTF-8")
+
+    path_db_user = f"projects/{project_id}/secrets/kortti-db-user/versions/latest"
+    encr_db_user = client.access_secret_version(request={"name": path_db_user})
+    db_user = encr_db_user.payload.data.decode("UTF-8")
+
+    path_kortti_bucket_id = f"projects/{project_id}/secrets/kortti-bucket-id/versions/latest"
+    encr_kortti_bucket_id = client.access_secret_version(request={"name": path_kortti_bucket_id})
+    bucket_name = encr_kortti_bucket_id.payload.data.decode("UTF-8")
+
+    return db_name, db_passwd, db_socket_dir, db_user, bucket_name
