@@ -1,23 +1,18 @@
 import psycopg2
 import requests
 import os
-import json
 import flask
-import datetime
 from google.cloud import storage, secretmanager
 
-
+# ENTRYPOINT: rivinhakija
 def rivinhakija(request):
-    """
-    ENTRYPOINT: rivinhakija / pääfunktio
-    """
 
     con = None  
     
     try:
         project_id = os.environ.get('PROJECT_ID')
 
-        dbname, user, password, db_socket_dir = hae_kirjautumistiedot(project_id)
+        dbname, password, db_socket_dir, user, bucket_name = hae_kirjautumistiedot(project_id)
         
         # muodostetaan yhteys ja luodaan kursori
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
@@ -39,9 +34,13 @@ def rivinhakija(request):
             
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
-            cursor.close()
 
-            # kortin tiedot:
+            # tarkistetaan, onko kortti jo luettu
+            if result[4]:
+                print("Korttia yritetään lukea, vaikka se on jo luettu")
+                return "Kortti on jo luettu."
+
+            # kortin tiedot tuplessa:
             # ---------------------------------------------------------
             # id = result[0], huom int!
             # lahettäjä = result[1]
@@ -51,20 +50,22 @@ def rivinhakija(request):
             # date created = result[5]
             # kuvan url tai nimi = result[6]
 
-            lahettaja, tervehdys = result[1], result[2]
+            lahettaja, tervehdys, blob_name = result[1], result[2], result[6]
             
             # muodostetaan kuvan url
-            bucket_name = "kekkos-ampari123"
-            blob_name = "kuva1.png"
             url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
+
+            # merkitään kortti luetuksi
+            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE id= %s;"
+            
+            cursor.execute(SQL,haettava_id)
+            con.commit()
 
             return html_kortti(lahettaja, tervehdys, url)
 
         else:
             response_msg = "Haku ok, mutta toiminto ei onnistu"
             return response_msg
-
-            cursor.close()
     
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
@@ -72,15 +73,13 @@ def rivinhakija(request):
         return f"Sori, ei toimi: {error}"
 
     finally:
+        cursor.close()
+        
         if con is not None:
             con.close()
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
-    """
-    HTML-korttipohja
-    """
-
     kortti = f'<!doctype html>\
     <html>\
         <head>\
@@ -118,4 +117,8 @@ def hae_kirjautumistiedot(project_id):
     encr_db_user = client.access_secret_version(request={"name": path_db_user})
     db_user = encr_db_user.payload.data.decode("UTF-8")
 
-    return db_name, db_passwd, db_socket_dir, db_user
+    path_kortti_bucket_id = f"projects/{project_id}/secrets/kortti-bucket-id/versions/latest"
+    encr_kortti_bucket_id = client.access_secret_version(request={"name": path_kortti_bucket_id})
+    bucket_name = encr_kortti_bucket_id.payload.data.decode("UTF-8")
+
+    return db_name, db_passwd, db_socket_dir, db_user, bucket_name
