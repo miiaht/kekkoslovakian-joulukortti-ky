@@ -5,7 +5,7 @@ import flask
 from google.cloud import storage, secretmanager
 
 # ENTRYPOINT: rivinhakija
-def rivinhakija(request):
+def get_one(request):
 
     con = None  
     
