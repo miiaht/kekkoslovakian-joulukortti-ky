@@ -4,19 +4,20 @@ import os
 import json
 import flask
 import datetime
-from google.cloud import storage
+from google.cloud import storage, secretmanager
 
-# ENTRYPOINT: rivinhakija
+
 def rivinhakija(request):
+    """
+    ENTRYPOINT: rivinhakija / pääfunktio
+    """
 
     con = None  
     
     try:
-        # TODO: muuta -> tiedot haetaan Secret Managerista
-        dbname = os.environ.get('DBNAME')
-        user = os.environ.get('USER')
-        password = os.environ.get('PASSWORD')
-        db_socket_dir = os.environ.get('DB_SOCKET_DIR')
+        project_id = os.environ.get('PROJECT_ID')
+
+        dbname, user, password, db_socket_dir = hae_kirjautumistiedot(project_id)
         
         # muodostetaan yhteys ja luodaan kursori
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
@@ -59,7 +60,6 @@ def rivinhakija(request):
 
             return html_kortti(lahettaja, tervehdys, url)
 
-
         else:
             response_msg = "Haku ok, mutta toiminto ei onnistu"
             return response_msg
@@ -77,6 +77,10 @@ def rivinhakija(request):
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
+    """
+    HTML-korttipohja
+    """
+
     kortti = f'<!doctype html>\
     <html>\
         <head>\
@@ -93,3 +97,25 @@ def html_kortti(lahettaja, teksti, kuvan_url):
     </html>'
 
     return kortti
+
+
+def hae_kirjautumistiedot(project_id):
+    client = secretmanager.SecretManagerServiceClient()
+    
+    path_db_name = f"projects/{project_id}/secrets/kortti-db-name/versions/latest"
+    encr_db_name = client.access_secret_version(request={"name": path_db_name})
+    db_name = encr_db_name.payload.data.decode("UTF-8")
+
+    path_db_passwd = f"projects/{project_id}/secrets/kortti-db-pw/versions/latest"
+    encr_db_passwd = client.access_secret_version(request={"name": path_db_passwd})
+    db_passwd = encr_db_passwd.payload.data.decode("UTF-8")
+
+    path_db_socker_dir = f"projects/{project_id}/secrets/kortti-db-socket-dir/versions/latest"
+    encr_db_socket = client.access_secret_version(request={"name": path_db_socker_dir})
+    db_socket_dir = encr_db_socket.payload.data.decode("UTF-8")
+
+    path_db_user = f"projects/{project_id}/secrets/kortti-db-user/versions/latest"
+    encr_db_user = client.access_secret_version(request={"name": path_db_user})
+    db_user = encr_db_user.payload.data.decode("UTF-8")
+
+    return db_name, db_passwd, db_socket_dir, db_user
