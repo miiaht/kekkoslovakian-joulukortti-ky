@@ -4,7 +4,7 @@ import os
 import flask
 from google.cloud import storage, secretmanager
 
-# ENTRYPOINT: rivinhakija
+# ENTRYPOINT:
 def get_one(request):
 
     con = None  
