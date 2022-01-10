@@ -12,3 +12,5 @@ Jokainen funktio on omassa kansiossaan Terraformia varten seuraavasti:
         - palauttaa GET-pyyntöön html-tiedoston (kortin)
         - muuttaa sarakkeen "hasbeenread" -> true
     - muuten palauttaa esim. 404
+- hae kaikki
+    rajapintapyyntö palauttaa kaikki luodut kortit json-formaatissa

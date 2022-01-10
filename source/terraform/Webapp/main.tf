@@ -35,6 +35,7 @@ provider "google-beta" {
 }
 
 
+
 /***********************************************************
 Tietokanta joulukorteille:
 ***********************************************************/
@@ -144,6 +145,7 @@ resource "google_sql_user" "db-users" {
 }
 
 
+
 /***********************************************************
 Frontend:
 ***********************************************************/
@@ -175,6 +177,7 @@ resource "google_cloud_run_service_iam_member" "member" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
 
 
 /***********************************************************
@@ -251,3 +254,8 @@ resource "google_compute_global_forwarding_rule" "default" {
   port_range = "443"
   ip_address = google_compute_global_address.default.address
 }
+
+
+/***********************************************************
+API:
+***********************************************************/
