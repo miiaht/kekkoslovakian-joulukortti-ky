@@ -1,53 +1,45 @@
 import psycopg2
 import os
-import json
+import json 
+import requests
 from google.cloud import secretmanager
 
-
-# ENTRYPOINT:
-def get_all(request):
-
+# ENTRYPOINT
+def excel_feed(request):
     con = None  
-    
     try:
         project_id = os.environ.get('PROJECT_ID')
 
-        dbname, password, db_socket_dir, user = hae_kirjautumistiedot(project_id)
-        
-        # muodostetaan yhteys ja luodaan kursori
+        # TODO: kirjoita funktio joka lukee csv-tiedoston bucketista
+
+
+        dbname, password, db_socket_dir, user, bucket = hae_kirjautumistiedot(project_id)
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
         con = psycopg2.connect(connecter)
         cursor = con.cursor()
 
-        # merkataan onnistunut yhteys lokiin
-        print("yhteys muodostettu")
-
-        SQL = "SELECT * FROM kortit;"
-        cursor.execute(SQL)
-        result = cursor.fetchall()
+        # TODO: korvaa alla oleva csv:stä iteroiduilla tiedoilla
+        request_json = request.get_json(silent=True)
         
-        items = []
-        for tuple in result:
-            dict = {}
-            dict["id"] = tuple[0]
-            dict["lahettaja"] = tuple[1]
-            dict["tervehdysteksti"] = tuple[2]
-            dict["vastaanottajanemail"] = tuple[3]
-            dict["hasbeenread"] = tuple[4]
-            dict["datecreated"] = tuple[5]
-            dict["kuvaurl"] = tuple[6]
-            items.append(dict)
+        sender = request_json["sender"]
+        message = request_json["message"]
+        receiver = request_json["receiver"]
+        image = request_json["image"]
 
-        return json.dumps(items, indent = 4, sort_keys=False, default=str)  
+        # TODO: luuppaa tää -> csv:n kaikki rivit kantaan
+        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
+        data = (sender, message, receiver, image)
+        cursor.execute(SQL, data)
+        con.commit()
+    
+        cursor.close()
+
+        return "Postitettu!"
+        
     
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
-
-        return f"Sori, ei toimi: {error}"
-
     finally:
-        cursor.close()
-        
         if con is not None:
             con.close()
 
@@ -71,4 +63,8 @@ def hae_kirjautumistiedot(project_id):
     encr_db_user = client.access_secret_version(request={"name": path_db_user})
     db_user = encr_db_user.payload.data.decode("UTF-8")
 
-    return db_name, db_passwd, db_socket_dir, db_user
+    path_kortti_bucket_id = f"projects/{project_id}/secrets/kortti-bucket-id/versions/latest"
+    encr_kortti_bucket_id = client.access_secret_version(request={"name": path_kortti_bucket_id})
+    bucket_name = encr_kortti_bucket_id.payload.data.decode("UTF-8")
+
+    return db_name, db_passwd, db_socket_dir, db_user, bucket_name
