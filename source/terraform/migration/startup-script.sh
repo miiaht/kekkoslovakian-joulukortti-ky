@@ -1,3 +1,3 @@
-#! /bin/bash
-sudo apt-get update
-sudo apt-get install postgresql-client -y
+ #! /bin/bash
+sudo apt update
+sudo apt -y install postgresql postgresql-client postgresql-contrib
