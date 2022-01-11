@@ -1,6 +1,13 @@
-/***********************************************************
+/* **************************************************************
 Kekkoslovakian Web-palvelun IaC
-***********************************************************/
+
+Moduuli määrittelee web-palvelun infran, joka sisältää:
+- palvelun käyttämän tietokannan
+- frontendin (Cloud Run)
+- frontin liikennettä ohjaavan load balancerin (NEG / serverless)
+- frontin ja backendin välissä pyyntöjä ohjaavan API:n (Api Gateway)
+- etc.
+************************************************************** */
 
 terraform {
   required_providers {
@@ -26,6 +33,7 @@ provider "google-beta" {
   region = var.region
   zone   = var.zone
 }
+
 
 
 /***********************************************************
@@ -137,10 +145,12 @@ resource "google_sql_user" "db-users" {
 }
 
 
+
 /***********************************************************
 Frontend:
 ***********************************************************/
 
+# Cloud Run container, jossa frontend:
 resource "google_cloud_run_service" "default" {
   provider  = google-beta
 
@@ -167,6 +177,7 @@ resource "google_cloud_run_service_iam_member" "member" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
 
 
 /***********************************************************
@@ -243,3 +254,8 @@ resource "google_compute_global_forwarding_rule" "default" {
   port_range = "443"
   ip_address = google_compute_global_address.default.address
 }
+
+
+/***********************************************************
+API:
+***********************************************************/
