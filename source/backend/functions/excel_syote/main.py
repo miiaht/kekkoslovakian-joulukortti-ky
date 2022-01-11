@@ -6,9 +6,11 @@ from google.cloud import secretmanager, storage
 import pandas as pd
 import fsspec
 
-# ENTRYPOINT
+# ENTRYPOINT:
 def excel_feed(request):
-    con = None  
+    
+    con = None
+
     try:
         project_id = os.environ.get('PROJECT_ID')
         
@@ -23,34 +25,46 @@ def excel_feed(request):
         con = psycopg2.connect(connecter)
         cursor = con.cursor()
 
-        # TESTI: PANDAS
         # Storage client täytyy initialisoida, vaikka sitä ei käytetä suoraan
         client = storage.Client()
 
         # haetaan csv storage-polusta
-        temp = pd.read_csv('gs://kekkos-ampari123/excel-feed/excel-feed.csv', encoding='utf-8')
+        csv_dataframe = pd.read_csv('gs://kekkos-ampari123/excel-feed/excel-feed.csv', encoding='utf-8')
+
+        # muodostetaan Pandas dataframesta lista, formaatti:
+        # [['Lähettäjä-1;Tervehdys-1;email-1;kuva-1'], ['Lähettäjä-2;Tervehdys-2;email-2;kuva-2']]
+        data_list = csv_dataframe.values.tolist()
         
-        print (temp.head())
-                
-        # TODO: iteroi csv ja hae tietokannan sarakkeita vastaavat tiedot
+        for sublist in data_list:
+            item_list = sublist[0].split(";")
 
-        # TODO: luuppaa tää -> csv:n kaikki rivit kantaan
-        # SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
-        # data = (sender, message, receiver, image)
-        # cursor.execute(SQL, data)
-        # con.commit()
+            print(item_list)
+
+            sender = item_list[0]
+            message = item_list[1]
+            receiver = item_list[2]
+            image = item_list[3]
+
+            # lisätään kortti tietokantaan
+            SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
+            data = (sender, message, receiver, image)
+            
+            cursor.execute(SQL, data)
+            con.commit()
     
-        # cursor.close()
+        # TODO: poista excel-tiedosto bucketista, kun triggeri toimii
 
-        # TODO: poista excel-tiedosto bucketista
-
-        return "Try-blokki suoritettu!"
+        return "CSV-tiedosto käsitelty"
         
-    
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
+
+        return error
+
     finally:
         if con is not None:
+            cursor.close()
+            
             con.close()
 
 
