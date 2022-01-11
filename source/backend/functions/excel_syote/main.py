@@ -2,39 +2,49 @@ import psycopg2
 import os
 import json 
 import requests
-from google.cloud import secretmanager
+from google.cloud import secretmanager, storage
+import pandas as pd
+import fsspec
 
 # ENTRYPOINT
 def excel_feed(request):
     con = None  
     try:
         project_id = os.environ.get('PROJECT_ID')
+        
+        # tietokannan kirjautumistiedot secreteistä
+        dbname, password, db_socket_dir, user, bucket_name = hae_kirjautumistiedot(project_id)
+        
+        # excel-tiedosto bucketissa
+        # blob_name = "excel-feed.csv"
 
-        # TODO: kirjoita funktio joka lukee csv-tiedoston bucketista
-
-
-        dbname, password, db_socket_dir, user, bucket = hae_kirjautumistiedot(project_id)
+        # tietokantayhteys
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
         con = psycopg2.connect(connecter)
         cursor = con.cursor()
 
-        # TODO: korvaa alla oleva csv:stä iteroiduilla tiedoilla
-        request_json = request.get_json(silent=True)
+        # TESTI: PANDAS
+        # Storage client täytyy initialisoida, vaikka sitä ei käytetä suoraan
+        client = storage.Client()
+
+        # haetaan csv storage-polusta
+        temp = pd.read_csv('gs://kekkos-ampari123/excel-feed/excel-feed.csv', encoding='utf-8')
         
-        sender = request_json["sender"]
-        message = request_json["message"]
-        receiver = request_json["receiver"]
-        image = request_json["image"]
+        print (temp.head())
+                
+        # TODO: iteroi csv ja hae tietokannan sarakkeita vastaavat tiedot
 
         # TODO: luuppaa tää -> csv:n kaikki rivit kantaan
-        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
-        data = (sender, message, receiver, image)
-        cursor.execute(SQL, data)
-        con.commit()
+        # SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
+        # data = (sender, message, receiver, image)
+        # cursor.execute(SQL, data)
+        # con.commit()
     
-        cursor.close()
+        # cursor.close()
 
-        return "Postitettu!"
+        # TODO: poista excel-tiedosto bucketista
+
+        return "Try-blokki suoritettu!"
         
     
     except (Exception,psycopg2.DatabaseError) as error:
