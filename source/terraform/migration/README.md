@@ -1,20 +1,21 @@
-Kekkoslovakian Joulukortti Ky -migration
+# Kekkoslovakian Joulukortti Ky -migration
 
-IAP TCP forwarding with Bastion
+## IAP TCP forwarding with Bastion
 - encrypted tunnel to forward SSH traffic to VM instance
 
-run terraform apply
+# To run
+- terraform apply
 
-once apply is complete, connect to Bastion instance with SSH. To connect to database first connect to henkilostohallinta or reskontra instance:
+## Once apply is complete, connect to Bastion instance with SSH. To connect to database first connect to henkilostohallinta or reskontra instance:
 
-gcloud compute ssh henkilostohallinta --internal-ip
+- gcloud compute ssh henkilostohallinta --internal-ip
 
-or 
+# or 
 
-gcloud compute ssh reskontra --internal-ip 
+- gcloud compute ssh reskontra --internal-ip 
 
 
-To connect to henkilosto or reskontra database:
+# To connect to henkilosto or reskontra database:
 
-psql -h sql-instance-private-ip -U henkilosto 
-psql -h sql-instance-private-ip -U reskontra
+- psql -h sql-instance-private-ip -U henkilosto 
+- psql -h sql-instance-private-ip -U reskontra
