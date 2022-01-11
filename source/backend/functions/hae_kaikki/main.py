@@ -38,7 +38,7 @@ def get_all(request):
             dict["kuvaurl"] = tuple[6]
             items.append(dict)
 
-        return json.dumps(items, indent = 4, sort_keys=True, default=str)  
+        return json.dumps(items, indent = 4, sort_keys=False, default=str)  
     
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
