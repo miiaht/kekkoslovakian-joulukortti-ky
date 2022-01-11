@@ -40,18 +40,18 @@ margin:0;
 [type=radio] { 
 position: absolute;
 opacity: 0;
-width: 0;
-height: 0;
+width: 20%;
+height: 20%;
 }
 
-/* IMAGE STYLES */
+/* IMAGE STYLES  */
 [type=radio] + img {
   cursor: pointer;
 }
 
 /* CHECKED STYLES */
 [type=radio]:checked + img {
-  outline: 2px solid #f00;
+  outline: 5px solid rgb(0, 255, 128);
 }
 img {
   vertical-align: middle;
@@ -115,6 +115,10 @@ p{
   text-align: center;
 }
 
+#image-0{
+  background-image: url(https://storage.cloud.google.com/kekkos-ampari123/Asset4_copy.png?authuser=0);
+}
+
 </style>
 	
 </head>
@@ -131,81 +135,75 @@ p{
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
           <div class="mySlides">
-            <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%201.png?authuser=0" style="width:110%" alt="">
+            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:110%" alt="">
           </div>
           <div class="mySlides">
-            <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%203.png?authuser=0" style="width:110%" alt="" >
+            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:110%" alt="" >
           </div>
           <div class="mySlides">
-          <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%204.png?authuser=0" style="width:110%" alt="" >
+          <img src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:110%" alt="" >
           </div>
-        </div>
-        <div class="col-sm-4 "></div>        
       </div>
+      <div class="col-sm-4 "></div>        
+    </div> <!--row-->
+
     <div class="row">
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
         <p>Valitse kortin kuva:</p>
       </div>
       <div class="col-sm-4"></div>
-    </div>
+    </div> <!--row--> 
 
-    <div class="row kuvavalinnat">
-      <form>
-      <div class="col-sm-3">
-      </div>
-        <div class="col-sm-2 kuvavalinta">
-          <label>
-                <input type="radio" name="kuva" onclick="myFunction(this.value)" value="1">
-        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%201.png?authuser=0" style="width:100%" onclick="currentSlide(1)" alt="">
-          </label>
-      </div>
-      <div class="col-sm-2 kuvavalinta">
-        <label>
-        <input type="radio" name="kuva"  onclick="myFunction(this.value)" value="2">
-        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%203.png?authuser=0" style="width:100%" onclick="currentSlide(2)" alt="">
-        </label>
-      </div>
-      <div class="col-sm-2 kuvavalinta">
-                  <label>
-              <input type="radio" name="kuva"  onclick="myFunction(this.value)" value="3">
-        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%204.png?authuser=0" style="width:100%" onclick="currentSlide(3)" alt="">
-      </label>
-      </div>			
-      <div class="col-sm-3"></div>
- 
-      <input type="text" id="result">
-      <input type="submit" value="Submit form">
-      </form>
-      <script>
-        function myFunction(kuvanvalinta) {
-          document.getElementById("result").value = kuvanvalinta;          
-          }
-      </script>
-    </div>
+    <!-- KORTIN VALINTA + LOMAKE  -->
+                
+                   
+    	<center>
+      <form action="{{ url_for('index') }}" method="POST">
+        <div class="row">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-2 kuvavalinta">
+            <div class="form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" id="image-0" name="" type="radio" value="kortti1_blank.png">  
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:100%" onclick="currentSlide(1)" alt="poro">
+              </label>
+            </div>             
+          </div>
 
-    <div class="row tekstikentat">
-      <div class="col-sm-4"></div>
-      <div class="col-sm-4">
-        <div class="formit">
-          <center>
-              <form action="{{ url_for('index') }}" method="POST">
-                {{ wtf.quick_form(form) }}
-              </form> 
-          </center>
+          <div class="col-sm-2 kuvavalinta">                  
+            <div class="form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" id="image-1" name="image" type="radio" value="kortti2_blank.png"> 
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:100%" onclick="currentSlide(2)" alt="kello">
+              </label>
+            </div> 
+          </div>          
+      
+          <div class="col-sm-2 kuvavalinta">                  
+            <div class="form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" id="image-2" name="image" type="radio" value="kortti3_blank.png">             
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:100%" onclick="currentSlide(3)" alt="kuusi">
+              </label>
+            </div>
+          </div>	
+
+          <div class="col-sm-3"></div>      
+          
+        </div> 
+        <div class="row">
+          <div class="col-sm-4"></div>
+          <div class="col-sm-4">{{ wtf.quick_form(form) }}</div>
+          <div class="col-sm-4"></div>
         </div>
-      </div>
-      <div class="col-sm-4"></div>
-    </div>
-    <div class="row">
-      <div class="col-sm-4"></div>
-      <div class="col-sm-4">
-        <p class="pt-5"><strong>{{ message }}</strong></p>
-      </div>
-      <div class="col-sm-4"></div>
-    </div>
+      </form>
+      </center>
+      
+      
 
     
+
     <script>
       var slideIndex = 1;
       showSlides(slideIndex);
