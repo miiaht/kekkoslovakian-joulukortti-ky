@@ -3,9 +3,7 @@
 
 {% block styles %}
 {{ super() }}
-	<style>
-		body { background: #e8f1f9; }
-	</style>
+	
 {% endblock %}
 
 
@@ -16,21 +14,234 @@ Kekkosen jolekortit
 
 {% block content %}
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-10 col-lg-8 mx-lg-auto mx-md-auto">
 
-      <h1 class="pt-5 pb-2">Kekkosen jolekortit!</h1>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<title>Kekkosen Joulukortit Ky</title>
+
+<style>
+body { 
+background: #e8f1f9; 
+margin:0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* HIDE RADIO */
+[type=radio] { 
+position: absolute;
+opacity: 0;
+width: 0;
+height: 0;
+}
+
+/* IMAGE STYLES */
+[type=radio] + img {
+  cursor: pointer;
+}
+
+/* CHECKED STYLES */
+[type=radio]:checked + img {
+  outline: 2px solid #f00;
+}
+img {
+  vertical-align: middle;
+}
+
+/* Position the image container (needed to position the left and right arrows) */
+.container {
+  position: relative;
+}
+
+/* Hide the images by default */
+.mySlides {
+  display: none;
+}
+
+/* Add a pointer when hovering over the thumbnail images */
+.cursor {
+  cursor: pointer;
+}
 
 
-      <form action="{{ url_for('index') }}" method="POST">
-        {{ wtf.quick_form(form) }}
-    </form> 
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover,
+.next:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
 
-      <p class="pt-5"><strong>{{ message }}</strong></p>
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
+/* Add a transparency effect for thumnbail images */
+.demo {
+  opacity: 0.6;
+}
+
+.active,
+.demo:hover {
+  opacity: 1;
+}
+
+.kuva{
+  padding-top:5%;
+  padding-bottom: 5%;
+}
+.kuvavalinnat{
+  padding-bottom: 5%;
+}
+.tekstikentat{
+  padding-top: 5%;
+}
+
+h1{
+  padding-top:5%;
+  text-align: center;
+}
+
+p{
+  text-align: center;
+}
+
+</style>
+	
+</head>
+
+<body>	
+  <div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+          <h1>Kekkosen jolekortit!</h1>
+        </div>
     </div>
+
+    <div class="row kuva">  
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+          <div class="mySlides">
+            <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%201.png?authuser=0" style="width:110%" alt="">
+          </div>
+          <div class="mySlides">
+            <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%203.png?authuser=0" style="width:110%" alt="" >
+          </div>
+          <div class="mySlides">
+          <img src="https://storage.cloud.google.com/kekkos-ampari123/Asset%204.png?authuser=0" style="width:110%" alt="" >
+          </div>
+        </div>
+        <div class="col-sm-4 "></div>        
+      </div>
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <p>Valitse kortin kuva:</p>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+
+    <div class="row kuvavalinnat">
+      <form>
+      <div class="col-sm-3">
+        <form action="/get-text" method="POST">
+          <input type="text" name="test">
+          <input type="submit" value="Go">
+      </form>
+      </div>
+        <div class="col-sm-2 kuvavalinta">
+          <label>
+                <input type="radio" name="kuva" onclick="myFunction(this.value)" value="1">
+        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%201.png?authuser=0" style="width:100%" onclick="currentSlide(1)" alt="">
+          </label>
+      </div>
+      <div class="col-sm-2 kuvavalinta">
+        <label>
+        <input type="radio" name="kuva"  onclick="myFunction(this.value)" value="2">
+        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%203.png?authuser=0" style="width:100%" onclick="currentSlide(2)" alt="">
+        </label>
+      </div>
+      <div class="col-sm-2 kuvavalinta">
+                  <label>
+              <input type="radio" name="kuva"  onclick="myFunction(this.value)" value="3">
+        <img class="demo cursor" src="https://storage.cloud.google.com/kekkos-ampari123/Asset%204.png?authuser=0" style="width:100%" onclick="currentSlide(3)" alt="">
+      </label>
+      </div>			
+      <div class="col-sm-3"></div>
+
+      <input type="text" id="result">
+      <input type="submit" value="Submit form">
+      </form>
+      <script>
+        function myFunction(kuvanvalinta) {
+          document.getElementById("result").value = kuvanvalinta;          
+          }
+      </script>
+    </div>
+
+    <div class="row tekstikentat">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <div class="formit">
+          <center>
+              <form action="{{ url_for('index') }}" method="POST">
+                {{ wtf.quick_form(form) }}
+              </form> 
+          </center>
+        </div>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <p class="pt-5"><strong>{{ message }}</strong></p>
+      </div>
+      <div class="col-sm-4"></div>
+    </div>
+
+    
+    <script>
+      var slideIndex = 1;
+      showSlides(slideIndex);
+
+      function plusSlides(n) {
+        showSlides(slideIndex += n);
+      }
+
+      function currentSlide(n) {
+        showSlides(slideIndex = n);
+      }
+
+      function showSlides(n) {
+        var i;
+        var slides = document.getElementsByClassName("mySlides");
+        var dots = document.getElementsByClassName("demo");
+        var captionText = document.getElementById("caption");
+        if (n > slides.length) {slideIndex = 1}
+        if (n < 1) {slideIndex = slides.length}
+        for (i = 0; i < slides.length; i++) {
+          slides[i].style.display = "none";
+        }
+        for (i = 0; i < dots.length; i++) {
+          dots[i].className = dots[i].className.replace(" active", "");
+        }
+        slides[slideIndex-1].style.display = "block";
+        dots[slideIndex-1].className += " active";
+        captionText.innerHTML = dots[slideIndex-1].alt;
+      }
+    </script>
   </div>
-</div>
+</body>
+</html>
 
 {% endblock %}

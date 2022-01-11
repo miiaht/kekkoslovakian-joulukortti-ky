@@ -1,19 +1,25 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, widgets
+from wtforms.fields.choices import RadioField, SelectField
 from wtforms.validators import DataRequired, Email
 from dotenv import load_dotenv
 import os
 import requests
 import json
 
+
+images = "https://storage.cloud.google.com/kekkos-ampari123/Asset%201.png?authuser=0", "https://storage.cloud.google.com/kekkos-ampari123/Asset%202.png?authuser=0"
 #Formi jota käytetään index.html:ssä
 class LetterForm(FlaskForm):
     sender = StringField('Lähettäjän nimi', validators=[DataRequired()])
     message = StringField('Kirjoita tähän joleterkut', validators=[DataRequired()])
     receiver = StringField('Vastaanottajan sähköposti', validators=[DataRequired()])
+    image = RadioField(validators=[DataRequired()], choices=images)
     submit = SubmitField('Lähetä')
+
+
 
 
 app = Flask(__name__)
@@ -35,9 +41,6 @@ def index():
         post_data(form.data)
         return redirect(url_for("index"))
     
-    #Tämä myös nappaa post datan?
-    #data = request.form.get("jokudata")
-
     return render_template('index.html', form=form)
 
 #Lähetetään formin datan post metodilla json muodossa apiin.
