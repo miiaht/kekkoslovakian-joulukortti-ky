@@ -105,7 +105,6 @@ resource "google_compute_firewall" "vpc_firewall_ssh" {
     ports    = ["22"]
   }
 
-  # Ei ehkä tarvita ?
   source_ranges = ["0.0.0.0/0"]
   target_tags = ["ssh"]
 }
@@ -270,7 +269,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
   patch_deployment_id = "instanssi-patch-deploy"
 
   instance_filter {
-    #Kaikki kerralla?
+    
     all = true
   }
 
@@ -372,7 +371,7 @@ resource "google_sql_user" "reskontra_database_user" {
   password = var.reskontra_database_password
 }
 
-### ajastin instansseille
+### ajastin instansseille. Instanssi menee tauolle 2 aikaan aamuyöllä, ja käynnistyy 6 aikaan aamulla
 resource "google_compute_resource_policy" "daily" {
   name   = "policy"
   region = "us-central1"
