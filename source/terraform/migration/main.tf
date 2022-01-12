@@ -82,7 +82,7 @@ resource "google_compute_firewall" "vpc_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "443", "80"]
+    ports    = ["22"]
   }
 
   source_ranges = ["35.235.240.0/20"]
@@ -169,9 +169,9 @@ resource "google_compute_instance" "bastion" {
   }
   network_interface {
     subnetwork = google_compute_subnetwork.vpc_subnet.id
-    access_config {
-      // Ephemeral public IP
-    }
+    #access_config {
+    #  // Ephemeral public IP
+    #}
   }
   service_account {
     email  = google_service_account.service_account.email
