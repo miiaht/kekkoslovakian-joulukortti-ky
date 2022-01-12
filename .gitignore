@@ -14,6 +14,7 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+.terraform.lock*
 __pycache__/
 *.py[cod]
 *$py.class
@@ -90,3 +91,4 @@ dmypy.json
 .pytype/
 cython_debug/
 __init*
+**secrets/
