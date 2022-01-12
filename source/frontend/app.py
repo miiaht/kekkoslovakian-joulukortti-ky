@@ -3,20 +3,22 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, widgets, BooleanField
 from wtforms.fields.choices import RadioField, SelectField
-from wtforms.validators import DataRequired, Email
+from wtforms.fields.simple import EmailField
+from wtforms.validators import DataRequired, Email, Length
 from dotenv import load_dotenv
 import os
 import requests
 import json
+from flask import flash
 
 
 
 #Formi jota käytetään index.html:ssä
 class LetterForm(FlaskForm):
-    image = RadioField('style image.', choices=[('kortti1_blank.png', 'Asset1' ),('kortti2_blank.png','Asset3'),('kortti3_blank.png','Asset3')] )
-    sender = StringField('Lähettäjän nimi', validators=[DataRequired()])
-    message = StringField('Kirjoita tähän joleterkut', validators=[DataRequired()])
-    receiver = StringField('Vastaanottajan sähköposti', validators=[DataRequired()])
+    image = RadioField('style image.', choices=[('kortti1_blank.png', '' ),('kortti2_blank.png',''),('kortti3_blank.png','')], validators=[DataRequired()] )
+    sender = StringField('Lähettäjän nimi', validators=[DataRequired(), Length(max=30)])
+    message = StringField('Kirjoita tähän joleterkut', validators=[DataRequired(), Length(max=50)])
+    receiver = EmailField('Vastaanottajan sähköposti', validators=[DataRequired(), Length(max=30)])
     submit = SubmitField('Lähetä')
 
 app = Flask(__name__)
@@ -44,7 +46,7 @@ def index():
 
     print(form.errors)
     if form.validate_on_submit():
-        print("Yritetään postittaa")
+        flash("Kirje postitettu!")
         post_data(form.data)    
         return redirect(url_for("index"))
     # else:

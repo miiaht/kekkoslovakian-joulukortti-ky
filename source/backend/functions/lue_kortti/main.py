@@ -52,6 +52,7 @@ def get_one(request):
 
             lahettaja, tervehdys, blob_name = result[1], result[2], result[6]
             
+            
             # muodostetaan kuvan url
             url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
 
@@ -80,18 +81,51 @@ def get_one(request):
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
-    kortti = f'<!doctype html>\
+    style = f'<style>\
+                body{font-family: "Gill Sans", "Gill Sans MT", "Myriad Pro", "DejaVu Sans Condensed", "Helvetica, Arial", "sans-serif"; color: #D3AA62; font-size: medium;}\
+                .container{position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto; background-color: #FFF;}\
+                .kortti{height: 1000px; background-image: url("{kuvan_url}"); background-position: center; background-repeat: no-repeat; background-size: cover; position: relative;}\
+                .receiver{position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;}\
+                .message{width: 60%; position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;}\
+                .sender{position: absolute; top: 75%; left: 50%; transform: translate(-50%,50%);font-size: 1.5em;}\
+            </style>'
+
+    kortti = '<!doctype html>\
     <html>\
         <head>\
-            <title>Hyvää joulua!</title>\
+		<meta charset="utf-8">\
+		<meta name="viewport" content="width=device-width, initial-scale=1">\
+        <link rel="stylesheet" href="style.css" type="text/css"/>\
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">\
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>\
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>\
+            <style>\
+                bodyfont{-family: "Gill Sans", "Gill Sans MT", "Myriad Pro", "DejaVu Sans Condensed", "Helvetica, Arial", "sans-serif"; color: #D3AA62; font-size: medium;}\
+                .container{position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto; background-color: #FFF;}\
+                .kortti{height: 1000px; background-image: url("{kuvan_url}"); background-position: center; background-repeat: no-repeat; background-size: cover; position: relative;}\
+                .receiver{position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;}\
+                .message{width: 60%; position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;}\
+                .sender{position: absolute; top: 75%; left: 50%; transform: translate(-50%,50%);font-size: 1.5em;}\
+            </style>\
         </head>\
-        <body style="background-color:#f7f4eb;">\
-            <h1>{teksti}</h1>\
-            <p>\
-                <img src="{kuvan_url}" alt="christmas_image" style="max-width:100%;height:auto;">\
-            </p>\
-            <h2>{lahettaja}</h2>\
-                <h5>Kekkoslovakian Joulukortit Ky</h5>\
+        <body>\
+			<div class="container">\
+				<div class="row">\
+					<div class="col-sm-2"></div>\
+					<div class="col-sm-8 kortti">\
+						<div class="receiver">\
+						<p>{vastaanottaja}</p>\
+					    </div>\
+                        <div class="message">\
+                            <p> {teksti} Kirijeen sulle kirijootan ja kuarehen mä laitan oikee valokuvanikin.Näet mut siinä vasemmalla sontakuarman päällä ja ohojaksissa Keltoon Mikin.</p>\
+                        </div>\
+						<div class="sender">\
+							<p>{lahettaja}</p>\
+						</div>\
+					</div>\
+					<div class="col-sm-2"></div>\
+				</div>\
+            </div>\
         </body>\
     </html>'
 
