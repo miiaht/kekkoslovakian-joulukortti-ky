@@ -257,5 +257,33 @@ resource "google_compute_global_forwarding_rule" "default" {
 
 
 /***********************************************************
-API:
+Rajanpinnan määrittely (API Gateway)
 ***********************************************************/
+resource "google_api_gateway_api" "kekkos-gw" {
+  provider = google-beta
+  api_id = "kekkos-gw"
+}
+
+# Luodaan config
+resource "google_api_gateway_api_config" "kekkos-gw" {
+  provider = google-beta
+  api = google_api_gateway_api.kekkos-gw.api_id
+  api_config_id = "config"
+
+  openapi_documents {
+    document {
+      path = "spec.yaml"
+      contents = filebase64("../api/kekkos-api.yaml")
+    }
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Luodaan gateway
+resource "google_api_gateway_gateway" "kekkos-gw" {
+  provider = google-beta
+  api_config = google_api_gateway_api_config.kekkos-gw.id
+  gateway_id = "kekkos-gw"
+}
