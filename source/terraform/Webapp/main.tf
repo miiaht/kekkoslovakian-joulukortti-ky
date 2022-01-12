@@ -6,7 +6,8 @@ Moduuli määrittelee web-palvelun infran, joka sisältää:
 - frontendin (Cloud Run)
 - frontin liikennettä ohjaavan load balancerin (NEG / serverless)
 - frontin ja backendin välissä pyyntöjä ohjaavan API:n (Api Gateway)
-- etc.
+- backendin funktiot
+- resurssien säilöntään tarkoitetut bucketit
 ************************************************************** */
 
 terraform {
@@ -30,8 +31,8 @@ provider "google-beta" {
   credentials = file(var.credentials_file)
   
   project = var.project
-  region = var.region
-  zone   = var.zone
+  region  = var.region
+  zone    = var.zone
 }
 
 
@@ -292,6 +293,7 @@ resource "google_api_gateway_gateway" "kekkos-gw" {
 
 /***********************************************************
 Cloud Functions -funktiot
+ja funktioiden vaatima infra
 ***********************************************************/
 
 ### Luodaan ämpäri, zipit ja funktiot
@@ -309,71 +311,169 @@ resource "google_storage_bucket" "bucket" {
   location = "US"
 }
 
-# Zipattu koodi #1 ämpäriin
+### Funktiot
+
+# delete_one
+# --------------------------------------------------------------------
 resource "google_storage_bucket_object" "zip_1" {
   provider  = google
-  name      = "get_all_items"
+  name      = "prod_delete_one"
   bucket    = google_storage_bucket.bucket.name
-  source    = "../functions/get_all_items.zip"
+  source    = "../../backend/functions/delete_one/delete_one.zip"
 }
 
-# Luo funktio zipissä olevasta koodi #1 stä
+# Luo funktio zipissä olevasta koodista
 resource "google_cloudfunctions_function" "func_1" {
   provider    = google
-  name        = "get_all_items"
-  description = "Hakee kaikki tuotteet tietokannasta"
+  name        = "prod_delete_one"
+  description = "poistaa vuoden vanhat kortit"
   runtime     = "python39"
 
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.bucket.name
   source_archive_object = google_storage_bucket_object.zip_1.name
   trigger_http          = true
-  entry_point           = "get_all_items"
+  entry_point           = "delete"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
 }
 
-# Zipattu koodi #2 ämpäriin
+
+# excel_to_db
+# --------------------------------------------------------------------
 resource "google_storage_bucket_object" "zip_2" {
   provider  = google
-  name      = "insert_to_cart"
+  name      = "prod_excel_to_db"
   bucket    = google_storage_bucket.bucket.name
-  source    = "../functions/push_to_cart.zip"
+  source    = "../../backend/functions/excel_to_db/excel_to_db.zip"
 }
 
-# Luo funktio zipissä olevasta koodi #2 stä
+# Luo funktio zipissä olevasta koodista
 resource "google_cloudfunctions_function" "func_2" {
   provider    = google
-  name        = "insert_to_cart"
-  description = "Hakee kaikki tuotteet tietokannasta"
+  name        = "prod_excel_to_db"
+  description = "lisää csv:n sisällön tietokantaan"
   runtime     = "python39"
 
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.bucket.name
   source_archive_object = google_storage_bucket_object.zip_2.name
   trigger_http          = true
-  entry_point           = "insert_to_cart"
+  entry_point           = "excel_feed"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
 }
 
-# Zipattu koodi #3 ämpäriin
+
+# get_all
+# --------------------------------------------------------------------
 resource "google_storage_bucket_object" "zip_3" {
   provider  = google
-  name      = "get_cart"
+  name      = "prod_get_all"
   bucket    = google_storage_bucket.bucket.name
-  source    = "../functions/get_cart.zip"
+  source    = "../../backend/functions/get_all/get_all.zip"
 }
 
-# Luo funktio zipissä olevasta koodi #3 stä
+# Luo funktio zipissä olevasta koodista
 resource "google_cloudfunctions_function" "func_3" {
   provider    = google
-  name        = "get_cart"
-  description = "Hakee kaikki tuotteet tietokannasta"
+  name        = "prod_get_all"
+  description = "Hakee kaikki kortit tietokannasta"
   runtime     = "python39"
 
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.bucket.name
   source_archive_object = google_storage_bucket_object.zip_3.name
   trigger_http          = true
-  entry_point           = "get_cart"
+  entry_point           = "get_all"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
 }
+
+
+# get_one
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_4" {
+  provider  = google
+  name      = "prod_get_one"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/get_one/get_one.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_4" {
+  provider    = google
+  name        = "prod_get_one"
+  description = "muodostaa kortin käyttäjälle"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_4.name
+  trigger_http          = true
+  entry_point           = "get_one"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# postcard
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_5" {
+  provider  = google
+  name      = "prod_postcard"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/postcard/postcard.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_5" {
+  provider    = google
+  name        = "prod_postcard"
+  description = "lisää joulukortin tietokantaan"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_5.name
+  trigger_http          = true
+  entry_point           = "postcard"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# return_images
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_6" {
+  provider  = google
+  name      = "prod_return_images"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/return_images/return_images.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_6" {
+  provider    = google
+  name        = "prod_return_images"
+  description = "palauttaa kaikki käytössä olevat kuvat (png)"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_6.name
+  trigger_http          = true
+  entry_point           = "return_images"
+  environment_variables = {
+    bucket = var.bucket
+  }
+}
+
 
 # avataan pääsy funktioihin
 resource "google_cloudfunctions_function_iam_member" "invoker_1" {
@@ -400,6 +500,20 @@ resource "google_cloudfunctions_function_iam_member" "invoker_3" {
 resource "google_cloudfunctions_function_iam_member" "invoker_4" {
   provider       = google
   cloud_function = google_cloudfunctions_function.func_4.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_5" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_5.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_6" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_6.name
   role   = "roles/cloudfunctions.invoker"
   member = "allUsers"
 }
