@@ -273,7 +273,7 @@ resource "google_api_gateway_api_config" "kekkos-gw" {
   openapi_documents {
     document {
       path = "spec.yaml"
-      contents = filebase64("../api/kekkos-api.yaml")
+      contents = filebase64("../../api/kekkos-api.yaml")
     }
   }
   lifecycle {
