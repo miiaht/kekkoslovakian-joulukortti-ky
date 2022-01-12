@@ -3,6 +3,8 @@ import os
 import json 
 import requests
 from google.cloud import secretmanager
+import string
+import random
 
 def postcard(request):
     con = None  
@@ -21,8 +23,10 @@ def postcard(request):
         receiver = request_json["receiver"]
         image = request_json["image"]
 
-        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl) VALUES (%s, %s, %s, %s)"
-        data = (sender, message, receiver, image)
+        salis = generoi_salis()
+
+        SQL = "INSERT INTO kortit (lahettaja, tervehdysteksti, vastaanottajanemail, kuvaurl, salasana) VALUES (%s, %s, %s, %s, %s)"
+        data = (sender, message, receiver, image, salis)
         cursor.execute(SQL, data)
         con.commit()
     
@@ -36,6 +40,10 @@ def postcard(request):
     finally:
         if con is not None:
             con.close()
+
+
+def generoi_salis(size=10, chars=string.ascii_letters + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 def hae_kirjautumistiedot(project_id):

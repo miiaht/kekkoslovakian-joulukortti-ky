@@ -1,0 +1,7 @@
+
+body{font-family: Gill Sans; color: #D3AA62; font-size: medium;}
+.container{position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto; background-color: #FFF; }
+.kortti{height: 1000px; background-position: center; background-repeat: no-repeat; background-size: cover; position: relative;}
+.receiver{position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;}
+.message{width: 60%; position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;}
+.sender{position: absolute; top: 55%; left: 50%; transform: translate(-50%,50%);font-size: 1.5em;}

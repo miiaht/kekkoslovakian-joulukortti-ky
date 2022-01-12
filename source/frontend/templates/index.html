@@ -65,6 +65,7 @@ img {
 /* Hide the images by default */
 .mySlides {
   display: none;
+  width: 100%;
 }
 
 /* Add a pointer when hovering over the thumbnail images */
@@ -96,18 +97,18 @@ img {
 }
 
 .kuva{
-  padding-top:5%;
-  padding-bottom: 5%;
+  padding-top:3%;
+  padding-bottom: 3%;
 }
 .kuvavalinnat{
-  padding-bottom: 5%;
+  padding-bottom: 3%;
 }
 .tekstikentat{
-  padding-top: 5%;
+  padding-top: 53%;
 }
 
 h1{
-  padding-top:5%;
+  padding-top:2%;
   text-align: center;
 }
 
@@ -115,8 +116,10 @@ p{
   text-align: center;
 }
 
-#image-0{
-  background-image: url(https://storage.cloud.google.com/kekkos-ampari123/Asset4_copy.png?authuser=0);
+
+
+.form-check{
+  padding:0;
 }
 
 </style>
@@ -135,13 +138,13 @@ p{
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
           <div class="mySlides">
-            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:110%" alt="">
+            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:100%" alt="poro">
           </div>
           <div class="mySlides">
-            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:110%" alt="" >
+            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:100%" alt="kellot" >
           </div>
           <div class="mySlides">
-          <img src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:110%" alt="" >
+          <img src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:100%" alt="kuusi" >
           </div>
       </div>
       <div class="col-sm-4 "></div>        
@@ -162,10 +165,11 @@ p{
       <form action="{{ url_for('index') }}" method="POST">
         <div class="row">
           <div class="col-sm-3"></div>
+
           <div class="col-sm-2 kuvavalinta">
             <div class="form-check">
               <label class="form-check-label">
-                <input class="form-check-input" id="image-0" name="" type="radio" value="kortti1_blank.png">  
+                <input class="form-check-input" id="image-0" name="image" type="radio" value="kortti1_blank.png" checked="checked">  
                 <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:100%" onclick="currentSlide(1)" alt="poro">
               </label>
             </div>             
@@ -187,11 +191,10 @@ p{
                 <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:100%" onclick="currentSlide(3)" alt="kuusi">
               </label>
             </div>
-          </div>	
-
-          <div class="col-sm-3"></div>      
-          
+          </div>
+          <div class="col-sm-3"></div>                
         </div> 
+
         <div class="row">
           <div class="col-sm-4"></div>
           <div class="col-sm-4">{{ wtf.quick_form(form) }}</div>
@@ -200,7 +203,15 @@ p{
       </form>
       </center>
       
-      
+      {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msgs in messages %}
+                    <div class="alert alert-info" role="alert">
+                        {{msgs}}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
     
 
