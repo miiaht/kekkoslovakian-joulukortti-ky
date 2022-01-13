@@ -36,6 +36,7 @@ def get_all(request):
             dict["hasbeenread"] = tuple[4]
             dict["datecreated"] = tuple[5]
             dict["kuvaurl"] = tuple[6]
+            dict["salasana"] = tuple[7]
             items.append(dict)
 
         return json.dumps(items, indent = 4, sort_keys=False, default=str)  
