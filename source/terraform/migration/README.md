@@ -30,7 +30,7 @@
 - gcloud init
 
 # Check configuration
-- gcloud config list to check configuration
+- gcloud config list
 
 # To start using IAP Bastion host
 - gcloud compute ssh --tunnel-through-iap --zone=<zone_name> <bastion_instance_name>
