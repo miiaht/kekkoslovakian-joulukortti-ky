@@ -1,12 +1,16 @@
+# projektin yleiset muuttujat:
 variable "project" {}
-
 variable "credentials_file" {}
+variable "region" { default = "us-central1" }
+variable "zone" { default = "us-central1-c" }
 
-# Default location placeholders:
-variable "region" {
-    default = "us-central1"
-}
+# webapp-tietokannan yhteysmuuttujat:
+variable "sql_name" {}
+variable "sql_password" {}
 
-variable "zone" {
-    default = "us-central1-c"
-}
+# webappin load balancerin muuttujat:
+variable "name" { default = "kekkos-lb" }
+variable "domain" {}
+
+# kuva-bucket
+variable "bucket" {}

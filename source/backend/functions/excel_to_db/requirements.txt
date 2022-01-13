@@ -1,0 +1,9 @@
+# siivoa turhat pois
+Flask
+psycopg2
+google-cloud-secret-manager
+google-cloud-storage
+requests==2.27.0
+pandas
+gcsfs
+fsspec
