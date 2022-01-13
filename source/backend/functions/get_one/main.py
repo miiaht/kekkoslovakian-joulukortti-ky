@@ -25,23 +25,24 @@ def get_one(request):
         # haetaan kortin x tiedot
         request_args = request.args
 
-        if request_args and "id" in request_args:
-            haettava_id = request_args["id"]
-            print(f"TESTI: {haettava_id}")
+        if request_args and "salasana" in request_args:
+            haettava_salasana = request_args["salasana"]
             
-            SQL = "SELECT * FROM kortit WHERE id = %s;"
+            print(f"TESTI: {haettava_salasana}")
+            
+            SQL = "SELECT * FROM kortit WHERE salasana = %s;"
             print("TESTI: SQL-pyynnön rakentaminen onnistui")
 
-            cursor.execute(SQL,(int(haettava_id),))
+            cursor.execute(SQL,(haettava_salasana,))
             print("TESTI: cursor execute onnistui")
             
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
 
             # tarkistetaan, onko kortti jo luettu
-            # if result[4]:
-            #    print("Korttia yritetään lukea, vaikka se on jo luettu")
-            #    return "Kortti on jo luettu."
+            if result[4]:
+               print("Korttia yritetään lukea, vaikka se on jo luettu")
+               return "Kortti on jo luettu."
 
             # kortin tiedot tuplessa:
             # ---------------------------------------------------------
@@ -59,9 +60,9 @@ def get_one(request):
             url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
 
             # merkitään kortti luetuksi
-            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE id= %s;"
+            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE salasana= %s;"
             
-            cursor.execute(SQL,haettava_id)
+            cursor.execute(SQL,(haettava_salasana,))
             con.commit()
 
             return html_kortti(lahettaja, tervehdys, url)
@@ -83,6 +84,7 @@ def get_one(request):
 
 
 def html_kortti(lahettaja, teksti, kuvan_url):
+    tausta = "https://storage.googleapis.com/kekkos-ampari123/tausta.png"
     kortti = f'<!doctype html>\
     <html>\
         <head>\
@@ -92,25 +94,33 @@ def html_kortti(lahettaja, teksti, kuvan_url):
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>\
             <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>\
         </head>\
-        <body style="color: #D3AA62; font-size: medium;">\
-			<div class="container" style="position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto; background-color: #FFF;">\
-				<div class="row">\
-					<div class="col-sm-2"></div>\
-					<div class="col-sm-8 kortti"\
-                        style="height: 1000px; background-image: url('https://storage.googleapis.com/kekkos-ampari123/kortti1_blank.png'); background-position: center;\
-                            background-repeat: no-repeat; background-size: cover; position: relative;">\
-						<div class="receiver" style="position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;">\
-							<p>Vastaanottaja</p>\
-						</div>\
-						<div class="message" style="position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;">\
-							<p>{teksti}</p>\
-						</div>\
-						<div class="sender" style="position: absolute; top: 75%; left: 50%; transform: translate(-50%,50%);font-size: 1.5em;">\
-							<p>{lahettaja}</p>\
-						</div>\
-					</div>\
-					<div class="col-sm-2"></div>\
-				</div>\
+        <body style="color: #D3AA62; font-size: medium; text-align: center;">\
+            <div class="web" style="width: 100%; height: 1500px; background-image: url({tausta});">\
+                <div class="container" style="position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto;">\
+                    <div class="row">\
+                        <div class="col-sm-2"></div>\
+                        <div class="col-sm-8" style="margin-top: 5%; font-size: 2em; font-weight: bolder; background-color: #FFF">\
+                            <p>Kekkosen Joulukortti Ky </p>\
+                            <p>välittää sinulle seuraavan joulukortin:</p>\
+                        </div>\
+                        <div class="col-sm-2"></div>\
+                    </div>\
+                    <div class="row" style="margin-top: 2%;">\
+                        <div class="col-sm-2"></div>\
+                        <div class="col-sm-8 kortti" style="height: 1000px; background-image: url({kuvan_url}); background-position: center; background-repeat: no-repeat; background-size: contain; position: relative;">\
+                            <div class="receiver" style="position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;">\
+                                <p></p>\
+                            </div>\
+                            <div class="message" style="position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 2em;">\
+                                <p>{teksti}</p>\
+                            </div>\
+                            <div class="sender" style="position: absolute; top: 80%; left: 50%; transform: translate(-50%,50%);font-size:1.5em;">\
+                                <p>{lahettaja}</p>\
+                            </div>\
+                        </div>\
+                        <div class="col-sm-2"></div>\
+                    </div>\
+                </div>\
             </div>\
         </body>\
     </html>'

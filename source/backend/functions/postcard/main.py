@@ -43,7 +43,7 @@ def postcard(request):
 
 
 def generoi_salis(size=10, chars=string.ascii_letters + string.digits):
-           return ''.join(random.choice(chars) for _ in range(size))
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 def hae_kirjautumistiedot(project_id):

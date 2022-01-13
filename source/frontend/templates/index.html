@@ -3,9 +3,7 @@
 
 {% block styles %}
 {{ super() }}
-	<style>
-		body { background: #e8f1f9; }
-	</style>
+	
 {% endblock %}
 
 
@@ -16,21 +14,268 @@ Kekkosen jolekortit
 
 {% block content %}
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-10 col-lg-8 mx-lg-auto mx-md-auto">
 
-      <h1 class="pt-5 pb-2">Kekkosen jolekortit!</h1>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<title>Kekkosen Joulukortit Ky</title>
+
+<style>
+body { 
+margin:0;
+
+}
+
+.web{
+  background-image: url("https://storage.googleapis.com/kekkos-ampari123/tausta.png");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* HIDE RADIO */
+[type=radio] { 
+position: absolute;
+opacity: 0;
+width: 20%;
+height: 20%;
+}
+
+/* IMAGE STYLES  */
+[type=radio] + img {
+  cursor: pointer;
+}
+
+/* CHECKED STYLES */
+[type=radio]:checked + img {
+	border: thick groove #FF0004;
+	border-radius: 10px;
+}
+img {
+  vertical-align: middle;
+}
+
+/* Position the image container (needed to position the left and right arrows) */
+.container {
+  position: relative;
+}
+
+/* Hide the images by default */
+.mySlides {
+  display: none;
+  width: 100%;
+}
+
+/* Add a pointer when hovering over the thumbnail images */
+.cursor {
+  cursor: pointer;
+}
 
 
-      <form action="{{ url_for('index') }}" method="POST">
-        {{ wtf.quick_form(form) }}
-    </form> 
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover,
+.next:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
 
-      <p class="pt-5"><strong>{{ message }}</strong></p>
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
+/* Add a transparency effect for thumnbail images */
+.demo {
+  opacity: 0.6;
+}
+
+.active,
+.demo:hover {
+  opacity: 1;
+}
+
+.kuva{
+  padding-top:1%;
+  padding-bottom: 2%;
+}
+
+.valitse{
+  font-size: large;
+}
+
+.kuvavalinnat{ 
+  padding-bottom: 3%;
+}
+.tekstikentat{
+  padding-top: 53%;
+}
+
+h1{
+  padding-top:2%;
+  text-align: center;
+}
+
+p{
+  text-align: center;
+}
+
+.form-check{
+  padding:0;
+}
+
+.viestikentta{
+  height: 10%;
+}
+
+.radio{
+  display: none;
+}
+
+.otsikko{
+  font-size: x-large;
+  color: #D3AA62;
+  font-weight: bolder; 
+  background-color: #FFF
+}
+
+.formit{
+  padding-top:3%;
+}
+</style>
+	
+</head>
+
+<body>	
+  <div class="web" style="width: 100%; height: 1500px;">
+    <div class="container">
+      <div class="row">
+          <div class="col-sm-12 otsikko">
+            <h1>Kekkosen Joulukortti Ky</h1>
+            <p>Joulukorttien välityspalvelu</p>
+          </div>
+      </div>
+
+      <div class="row kuva" >  
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class="mySlides">
+              <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta1.png" style="width:100%" alt="poro">
+            </div>
+            <div class="mySlides">
+              <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta2.png" style="width:100%" alt="kellot" >
+            </div>
+            <div class="mySlides">
+            <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta3.png" style="width:100%" alt="kuusi" >
+            </div>
+        </div>
+        <div class="col-sm-4"></div>
+      </div> <!--row-->
+
+      <div class="row" >
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4 valitse" style="background-color: #FFF;">
+          <p>Valitse kortin kuva:</p>
+        </div>
+        <div class="col-sm-4"></div>
+      </div> <!--row--> 
+
+      <!-- KORTIN VALINTA + LOMAKE  -->
+                  
+                    
+        <center>
+        <form action="{{ url_for('index') }}" method="POST">
+          <div class="row">
+            <div class="col-sm-3"></div>
+
+            <div class="col-sm-2 kuvavalinta">
+              <div class="form-check" style="background-color: #FFF;">
+                <label class="form-check-label">
+                  <input class="form-check-input" id="image-0" name="image" type="radio" value="kortti1_blank.png" checked="checked">  
+                  <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti1_blank.png" style="width:100%" onclick="currentSlide(1)" alt="poro">
+                </label>
+              </div>             
+            </div>
+
+            <div class="col-sm-2 kuvavalinta">                  
+              <div class="form-check" style="background-color: #FFF;">
+                <label class="form-check-label">
+                  <input class="form-check-input" id="image-1" name="image" type="radio" value="kortti2_blank.png"> 
+                  <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti2_blank.png" style="width:100%" onclick="currentSlide(2)" alt="kello">
+                </label>
+              </div> 
+            </div>          
+        
+            <div class="col-sm-2 kuvavalinta">                  
+              <div class="form-check" style="background-color: #FFF;">
+                <label class="form-check-label">
+                  <input class="form-check-input" id="image-2" name="image" type="radio" value="kortti3_blank.png">             
+                  <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti3_blank.png" style="width:100%" onclick="currentSlide(3)" alt="kuusi">
+                </label>
+              </div>
+            </div>
+            <div class="col-sm-3"></div>                
+          </div> 
+
+          <div class="row formit" style="padding-bottom: 5%;">
+            <div class="col-sm-3"></div>
+            <div class="col-sm-6" style="background-color: #FFF;">{{ wtf.quick_form(form) }}</div>
+            <div class="col-sm-3"></div>
+          </div>
+        </form>
+        </center>
+      
+        {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                  {% for msgs in messages %}
+                      <div class="alert alert-info" role="alert">
+                          {{msgs}}
+                      </div>
+                  {% endfor %}
+              {% endif %}
+          {% endwith %}
+
+      
+
+      <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+
+        function plusSlides(n) {
+          showSlides(slideIndex += n);
+        }
+
+        function currentSlide(n) {
+          showSlides(slideIndex = n);
+        }
+
+        function showSlides(n) {
+          var i;
+          var slides = document.getElementsByClassName("mySlides");
+          var dots = document.getElementsByClassName("demo");
+          var captionText = document.getElementById("caption");
+          if (n > slides.length) {slideIndex = 1}
+          if (n < 1) {slideIndex = slides.length}
+          for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+          }
+          for (i = 0; i < dots.length; i++) {
+            dots[i].className = dots[i].className.replace(" active", "");
+          }
+          slides[slideIndex-1].style.display = "block";
+          dots[slideIndex-1].className += " active";
+          captionText.innerHTML = dots[slideIndex-1].alt;
+        }
+      </script>
     </div>
-  </div>
 </div>
+</body>
+</html>
 
 {% endblock %}

@@ -1,2 +1,3 @@
-# Placeholder README.md
-Näihin vois dokumentoida kansioiden sisältöä edes yleisellä tasolla jos jaksaa ja ehtii.
+# Verkkosovelluksen "frontend"
+
+Kansio sisältää verkkosovelluksen ohjelmakoodin, riippuvuudet ja Docker-imagen. Frontend rakentuu Terraformilla osana Webapp-kokonaisuutta.
