@@ -155,14 +155,14 @@ Frontend:
 resource "google_cloud_run_service" "default" {
   provider  = google-beta
 
-  name     = "fronttitesti-1"
+  name     = "prod-kekkos-app"
   location = var.region
   project  = var.project
 
   template {
     spec {
       containers {
-        image = "gcr.io/final-project-1-337107/kekkos-app:0.2"
+        image = "gcr.io/final-project-1-337107/kekkos-app:0.5"
         ports {
           container_port = 5000
         }
