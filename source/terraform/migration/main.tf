@@ -106,7 +106,7 @@ resource "google_compute_firewall" "vpc_firewall_ssh" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags = ["ssh"]
+  target_tags   = ["ssh"]
 }
 
 ### Private IP -säännöt SQL:lle
@@ -247,7 +247,7 @@ resource "google_compute_instance" "reskontra_instanssi" {
   }
   resource_policies = [
     google_compute_resource_policy.daily.id,
-    ]
+  ]
   metadata_startup_script = file("startup-script.sh")
 
   service_account {
@@ -269,7 +269,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
   patch_deployment_id = "instanssi-patch-deploy"
 
   instance_filter {
-    
+
     all = true
   }
 
@@ -373,8 +373,8 @@ resource "google_sql_user" "reskontra_database_user" {
 
 ### ajastin instansseille. Instanssi menee tauolle 2 aikaan aamuyöllä, ja käynnistyy 6 aikaan aamulla
 resource "google_compute_resource_policy" "daily" {
-  name   = "policy"
-  region = "us-central1"
+  name        = "policy"
+  region      = "us-central1"
   description = "Start and stop instances"
   instance_schedule_policy {
     vm_start_schedule {
