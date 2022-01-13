@@ -4,7 +4,6 @@
 - encrypted tunnel to forward SSH traffic to VM instance
 
 # To run
-- make sure 
 - terraform apply
 
 ## Once apply is complete, connect to Bastion instance with SSH. To connect to database first connect to henkilostohallinta or reskontra instance:
