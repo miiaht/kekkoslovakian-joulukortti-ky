@@ -12,16 +12,16 @@ import json
 from flask import flash
 
 
-
 #Formi jota käytetään index.html:ssä
 class LetterForm(FlaskForm):
     image = RadioField('style image.', choices=[('kortti1_blank.png', '' ),('kortti2_blank.png',''),('kortti3_blank.png','')], validators=[DataRequired()] )
     sender = StringField('Lähettäjän nimi', validators=[DataRequired(), Length(max=30)])
-    message = StringField('Kirjoita tähän joleterkut', validators=[DataRequired(), Length(max=50)])
+    message = StringField('Jouluterveiset', validators=[DataRequired(), Length(max=50)])
     receiver = EmailField('Vastaanottajan sähköposti', validators=[DataRequired(), Length(max=30)])
     submit = SubmitField('Lähetä')
 
 app = Flask(__name__)
+
 
 load_dotenv()
 

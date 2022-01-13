@@ -25,12 +25,12 @@ def get_one(request):
         # haetaan kortin x tiedot
         request_args = request.args
 
-        if request_args and "id" in request_args:
-            haettava_id = request_args["id"]
+        if request_args and "salasana" in request_args:
+            haettava_salasana = request_args["salasana"]
 
-            SQL = "SELECT * FROM kortit WHERE id = %s;"
+            SQL = "SELECT * FROM kortit WHERE salasana = %s;"
             
-            cursor.execute(SQL,haettava_id)
+            cursor.execute(SQL,haettava_salasana)
             
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
@@ -57,9 +57,9 @@ def get_one(request):
             url = f"https://storage.cloud.google.com/{bucket_name}/{blob_name}"
 
             # merkitään kortti luetuksi
-            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE id= %s;"
+            SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE salasana= %s;"
             
-            cursor.execute(SQL,haettava_id)
+            cursor.execute(SQL,haettava_salasana)
             con.commit()
 
             return html_kortti(lahettaja, tervehdys, url)

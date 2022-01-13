@@ -51,7 +51,8 @@ height: 20%;
 
 /* CHECKED STYLES */
 [type=radio]:checked + img {
-  outline: 5px solid rgb(0, 255, 128);
+	border: thick groove #FF0004;
+	border-radius: 10px;
 }
 img {
   vertical-align: middle;
@@ -97,10 +98,15 @@ img {
 }
 
 .kuva{
-  padding-top:3%;
-  padding-bottom: 3%;
+  padding-top:1%;
+  padding-bottom: 2%;
 }
-.kuvavalinnat{
+
+.valitse{
+  font-size: large;
+}
+
+.kuvavalinnat{ 
   padding-bottom: 3%;
 }
 .tekstikentat{
@@ -116,12 +122,25 @@ p{
   text-align: center;
 }
 
-
-
 .form-check{
   padding:0;
 }
 
+.viestikentta{
+  height: 10%;
+}
+
+.radio{
+  display: none;
+}
+
+.otsikko{
+  font-size: large;
+}
+
+.formit{
+  padding-top:3%;
+}
 </style>
 	
 </head>
@@ -129,8 +148,9 @@ p{
 <body>	
   <div class="container">
     <div class="row">
-        <div class="col-sm-12">
-          <h1>Kekkosen jolekortit!</h1>
+        <div class="col-sm-12 otsikko">
+          <h1>Kekkosen Joulukortti Ky</h1>
+          <p>Joulukorttien välityspalvelu</p>
         </div>
     </div>
 
@@ -138,13 +158,13 @@ p{
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
           <div class="mySlides">
-            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:100%" alt="poro">
+            <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta1.png" style="width:100%" alt="poro">
           </div>
           <div class="mySlides">
-            <img src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:100%" alt="kellot" >
+            <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta2.png" style="width:100%" alt="kellot" >
           </div>
           <div class="mySlides">
-          <img src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:100%" alt="kuusi" >
+          <img src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti_valinta3.png" style="width:100%" alt="kuusi" >
           </div>
       </div>
       <div class="col-sm-4 "></div>        
@@ -152,7 +172,7 @@ p{
 
     <div class="row">
       <div class="col-sm-4"></div>
-      <div class="col-sm-4">
+      <div class="col-sm-4 valitse">
         <p>Valitse kortin kuva:</p>
       </div>
       <div class="col-sm-4"></div>
@@ -170,7 +190,7 @@ p{
             <div class="form-check">
               <label class="form-check-label">
                 <input class="form-check-input" id="image-0" name="image" type="radio" value="kortti1_blank.png" checked="checked">  
-                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset1_copy.png" style="width:100%" onclick="currentSlide(1)" alt="poro">
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti1_blank.png" style="width:100%" onclick="currentSlide(1)" alt="poro">
               </label>
             </div>             
           </div>
@@ -179,7 +199,7 @@ p{
             <div class="form-check">
               <label class="form-check-label">
                 <input class="form-check-input" id="image-1" name="image" type="radio" value="kortti2_blank.png"> 
-                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset3_copy.png" style="width:100%" onclick="currentSlide(2)" alt="kello">
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti2_blank.png" style="width:100%" onclick="currentSlide(2)" alt="kello">
               </label>
             </div> 
           </div>          
@@ -188,21 +208,21 @@ p{
             <div class="form-check">
               <label class="form-check-label">
                 <input class="form-check-input" id="image-2" name="image" type="radio" value="kortti3_blank.png">             
-                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/Asset4_copy.png" style="width:100%" onclick="currentSlide(3)" alt="kuusi">
+                <img class="demo cursor" src="https://storage.googleapis.com/kekkos-ampari123/front-images/kortti3_blank.png" style="width:100%" onclick="currentSlide(3)" alt="kuusi">
               </label>
             </div>
           </div>
           <div class="col-sm-3"></div>                
         </div> 
 
-        <div class="row">
-          <div class="col-sm-4"></div>
-          <div class="col-sm-4">{{ wtf.quick_form(form) }}</div>
-          <div class="col-sm-4"></div>
+        <div class="row formit">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-6">{{ wtf.quick_form(form) }}</div>
+          <div class="col-sm-3"></div>
         </div>
       </form>
       </center>
-      
+    
       {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for msgs in messages %}
