@@ -22,3 +22,15 @@
 
 - psql -h sql-instance-private-ip -U henkilosto 
 - psql -h sql-instance-private-ip -U reskontra
+
+## To connect to instance using Cloud SDK
+- Make sure Cloud SDK is confgured on your machine
+
+# To configure the project and details use command
+- gcloud init
+
+# Check configuration
+- gcloud config list to check configuration
+
+# To start using IAP Bastion host
+- gcloud compute ssh --tunnel-through-iap --zone=<zone_name> <bastion_instance_name>
