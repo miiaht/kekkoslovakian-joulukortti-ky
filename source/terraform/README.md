@@ -1,2 +1,7 @@
-# Placeholder README.md
-Näihin vois dokumentoida kansioiden sisältöä edes yleisellä tasolla jos jaksaa ja ehtii.
+# Kekkosslovakian joulukortit IaC
+
+Migration
+- kansio sisältää yrityksen henkilöstöhallinnan ja reskontran pystyttämiseen tarvittavat Terraform-tiedostot
+
+Webapp
+- kansio sisältää verkkosovelluksen pystyttämiseen tarvittavan koodin
