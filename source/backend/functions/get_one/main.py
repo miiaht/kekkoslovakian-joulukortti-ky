@@ -27,12 +27,13 @@ def get_one(request):
 
         if request_args and "salasana" in request_args:
             haettava_salasana = request_args["salasana"]
+            
             print(f"TESTI: {haettava_salasana}")
             
             SQL = "SELECT * FROM kortit WHERE salasana = %s;"
             print("TESTI: SQL-pyynnön rakentaminen onnistui")
 
-            cursor.execute(SQL,(int(haettava_salasana),))
+            cursor.execute(SQL,(haettava_salasana,))
             print("TESTI: cursor execute onnistui")
             
             # huom: psykopg palauttaa tuplen
@@ -61,7 +62,7 @@ def get_one(request):
             # merkitään kortti luetuksi
             SQL = "UPDATE kortit SET hasbeenread=TRUE WHERE salasana= %s;"
             
-            cursor.execute(SQL,haettava_salasana)
+            cursor.execute(SQL,(haettava_salasana,))
             con.commit()
 
             return html_kortti(lahettaja, tervehdys, url)
