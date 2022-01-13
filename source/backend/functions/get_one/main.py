@@ -39,9 +39,9 @@ def get_one(request):
             result = cursor.fetchone()
 
             # tarkistetaan, onko kortti jo luettu
-            # if result[4]:
-            #    print("Korttia yritetään lukea, vaikka se on jo luettu")
-            #    return "Kortti on jo luettu."
+            if result[4]:
+               print("Korttia yritetään lukea, vaikka se on jo luettu")
+               return "Kortti on jo luettu."
 
             # kortin tiedot tuplessa:
             # ---------------------------------------------------------
