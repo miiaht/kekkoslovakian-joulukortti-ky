@@ -1,0 +1,4 @@
+Flask
+psycopg2
+google-cloud-secret-manager
+requests==2.27.0

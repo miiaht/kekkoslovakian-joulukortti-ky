@@ -4,7 +4,7 @@ import os
 import flask
 from google.cloud import storage, secretmanager
 
-# ENTRYPOINT:
+# ENTRYPOINT: rivinhakija
 def get_one(request):
 
     con = None  
@@ -27,18 +27,21 @@ def get_one(request):
 
         if request_args and "id" in request_args:
             haettava_id = request_args["id"]
-
-            SQL = "SELECT * FROM kortit WHERE id = %s;"
+            print(f"TESTI: {haettava_id}")
             
-            cursor.execute(SQL,haettava_id)
+            SQL = "SELECT * FROM kortit WHERE id = %s;"
+            print("TESTI: SQL-pyynnön rakentaminen onnistui")
+
+            cursor.execute(SQL,(int(haettava_id),))
+            print("TESTI: cursor execute onnistui")
             
             # huom: psykopg palauttaa tuplen
             result = cursor.fetchone()
 
             # tarkistetaan, onko kortti jo luettu
-            if result[4]:
-                print("Korttia yritetään lukea, vaikka se on jo luettu")
-                return "Kortti on jo luettu."
+            # if result[4]:
+            #    print("Korttia yritetään lukea, vaikka se on jo luettu")
+            #    return "Kortti on jo luettu."
 
             # kortin tiedot tuplessa:
             # ---------------------------------------------------------
@@ -83,15 +86,32 @@ def html_kortti(lahettaja, teksti, kuvan_url):
     kortti = f'<!doctype html>\
     <html>\
         <head>\
-            <title>Hyvää joulua!</title>\
+            <meta charset="utf-8">\
+            <meta name="viewport" content="width=device-width, initial-scale=1">\
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">\
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>\
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>\
         </head>\
-        <body style="background-color:#f7f4eb;">\
-            <h1>{teksti}</h1>\
-            <p>\
-                <img src="{kuvan_url}" alt="christmas_image" style="max-width:100%;height:auto;">\
-            </p>\
-            <h2>{lahettaja}</h2>\
-                <h5>Kekkoslovakian Joulukortit Ky</h5>\
+        <body style="color: #D3AA62; font-size: medium;">\
+			<div class="container" style="position: relative; height: 1000px; display: block; margin-left: auto; margin-right: auto; background-color: #FFF;">\
+				<div class="row">\
+					<div class="col-sm-2"></div>\
+					<div class="col-sm-8 kortti"\
+                        style="height: 1000px; background-image: url('https://storage.googleapis.com/kekkos-ampari123/kortti1_blank.png'); background-position: center;\
+                            background-repeat: no-repeat; background-size: cover; position: relative;">\
+						<div class="receiver" style="position: absolute;top: 60%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5em;">\
+							<p>Vastaanottaja</p>\
+						</div>\
+						<div class="message" style="position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2em;">\
+							<p>{teksti}</p>\
+						</div>\
+						<div class="sender" style="position: absolute; top: 75%; left: 50%; transform: translate(-50%,50%);font-size: 1.5em;">\
+							<p>{lahettaja}</p>\
+						</div>\
+					</div>\
+					<div class="col-sm-2"></div>\
+				</div>\
+            </div>\
         </body>\
     </html>'
 
