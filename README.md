@@ -19,3 +19,5 @@ Tehdään kommitteja usein, jotta koodia on helppo jakaa ja se on ajan tasalla v
         - docker: imaget
         - functions: serverless-funktiot
     - terraform: IaC
+- images:
+    - esimerkkikuvia palvelua varten

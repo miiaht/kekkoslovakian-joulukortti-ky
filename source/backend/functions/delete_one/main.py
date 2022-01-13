@@ -1,53 +1,34 @@
 import psycopg2
+import requests
 import os
 import json
 from google.cloud import secretmanager
 
-
-# ENTRYPOINT:
-def get_all(request):
-
+def delete(request):
     con = None  
-    
     try:
         project_id = os.environ.get('PROJECT_ID')
 
         dbname, password, db_socket_dir, user = hae_kirjautumistiedot(project_id)
         
-        # muodostetaan yhteys ja luodaan kursori
         connecter = 'dbname={} user={} password={} host={}'.format(dbname, user, password, db_socket_dir)
         con = psycopg2.connect(connecter)
         cursor = con.cursor()
 
-        # merkataan onnistunut yhteys lokiin
-        print("yhteys muodostettu")
-
-        SQL = "SELECT * FROM kortit;"
+        SQL = "DELETE FROM kortit WHERE datecreated < (NOW() - interval '365 days');"
         cursor.execute(SQL)
-        result = cursor.fetchall()
+        con.commit()
         
-        items = []
-        for tuple in result:
-            dict = {}
-            dict["id"] = tuple[0]
-            dict["lahettaja"] = tuple[1]
-            dict["tervehdysteksti"] = tuple[2]
-            dict["vastaanottajanemail"] = tuple[3]
-            dict["hasbeenread"] = tuple[4]
-            dict["datecreated"] = tuple[5]
-            dict["kuvaurl"] = tuple[6]
-            items.append(dict)
-
-        return json.dumps(items, indent = 4, sort_keys=True, default=str)  
-    
+        return f"Poistettu: vanhat kortit"
+            
     except (Exception,psycopg2.DatabaseError) as error:
         print(error)
 
-        return f"Sori, ei toimi: {error}"
+        return error
 
     finally:
         cursor.close()
-        
+
         if con is not None:
             con.close()
 

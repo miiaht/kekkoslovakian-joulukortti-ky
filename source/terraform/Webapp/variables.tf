@@ -11,3 +11,6 @@ variable "sql_password" {}
 # webappin load balancerin muuttujat:
 variable "name" { default = "kekkos-lb" }
 variable "domain" {}
+
+# kuva-bucket
+variable "bucket" {}

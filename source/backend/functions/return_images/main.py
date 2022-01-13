@@ -23,6 +23,5 @@ def return_images(request):
 
     except Exception as e:
         print(e)
-        return "blib blob"
 
-    
+        return e

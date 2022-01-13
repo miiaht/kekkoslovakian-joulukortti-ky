@@ -1,2 +1,11 @@
-# Placeholder README.md
-Näihin vois dokumentoida kansioiden sisältöä edes yleisellä tasolla jos jaksaa ja ehtii.
+# Lähdekoodit
+
+Kansiot:
+- api
+    - frontendin ja backendin välissä toimivan rajapinnan määrittely
+- backend
+    - backend-funktioiden koodi
+- frontend
+    - käyttäjälle näkyvän frontendin koodi
+- terraform
+    - yrityksen sisäisen infran ja verkkosovelluksen inrfan ja toiminnallisuuden määrittävä koodi
