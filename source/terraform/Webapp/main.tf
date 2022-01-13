@@ -6,7 +6,8 @@ Moduuli määrittelee web-palvelun infran, joka sisältää:
 - frontendin (Cloud Run)
 - frontin liikennettä ohjaavan load balancerin (NEG / serverless)
 - frontin ja backendin välissä pyyntöjä ohjaavan API:n (Api Gateway)
-- etc.
+- backendin funktiot
+- resurssien säilöntään tarkoitetut bucketit
 ************************************************************** */
 
 terraform {
@@ -30,8 +31,8 @@ provider "google-beta" {
   credentials = file(var.credentials_file)
   
   project = var.project
-  region = var.region
-  zone   = var.zone
+  region  = var.region
+  zone    = var.zone
 }
 
 
@@ -255,6 +256,32 @@ resource "google_compute_global_forwarding_rule" "default" {
   ip_address = google_compute_global_address.default.address
 }
 
+# uudelleenohjataan http -> https
+resource "google_compute_url_map" "https_redirect" {
+  provider  = google-beta
+  
+  name            = "${var.name}-https-redirect"
+
+  default_url_redirect {
+    https_redirect         = true
+    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+    strip_query            = false
+  }
+}
+
+resource "google_compute_target_http_proxy" "https_redirect" {
+  name   = "${var.name}-http-proxy"
+  url_map          = google_compute_url_map.https_redirect.id
+}
+
+resource "google_compute_global_forwarding_rule" "https_redirect" {
+  name   = "${var.name}-lb-http"
+
+  target = google_compute_target_http_proxy.https_redirect.id
+  port_range = "80"
+  ip_address = google_compute_global_address.default.address
+}
+
 
 /***********************************************************
 Rajanpinnan määrittely (API Gateway)
@@ -286,4 +313,233 @@ resource "google_api_gateway_gateway" "kekkos-gw" {
   provider = google-beta
   api_config = google_api_gateway_api_config.kekkos-gw.id
   gateway_id = "kekkos-gw"
+}
+
+
+
+/***********************************************************
+Cloud Functions -funktiot
+ja funktioiden vaatima infra
+***********************************************************/
+
+### Luodaan ämpäri, zipit ja funktiot
+# Access control bucketille
+resource "google_storage_bucket_access_control" "public_rule" {
+  bucket = google_storage_bucket.bucket.name
+  role   = "OWNER"
+  entity = "allUsers"
+}
+
+# Ämpäri jossa koodit funktioille
+resource "google_storage_bucket" "bucket" {
+  provider = google
+  name     = "kekkos-koodit"
+  location = "US"
+}
+
+### Funktiot
+
+# delete_one
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_1" {
+  provider  = google
+  name      = "prod_delete_one"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/delete_one/delete_one.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_1" {
+  provider    = google
+  name        = "prod_delete_one"
+  description = "poistaa vuoden vanhat kortit"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_1.name
+  trigger_http          = true
+  entry_point           = "delete"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# excel_to_db
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_2" {
+  provider  = google
+  name      = "prod_excel_to_db"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/excel_to_db/excel_to_db.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_2" {
+  provider    = google
+  name        = "prod_excel_to_db"
+  description = "lisää csv:n sisällön tietokantaan"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_2.name
+  trigger_http          = true
+  entry_point           = "excel_feed"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# get_all
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_3" {
+  provider  = google
+  name      = "prod_get_all"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/get_all/get_all.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_3" {
+  provider    = google
+  name        = "prod_get_all"
+  description = "Hakee kaikki kortit tietokannasta"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_3.name
+  trigger_http          = true
+  entry_point           = "get_all"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# get_one
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_4" {
+  provider  = google
+  name      = "prod_get_one"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/get_one/get_one.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_4" {
+  provider    = google
+  name        = "prod_get_one"
+  description = "muodostaa kortin käyttäjälle"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_4.name
+  trigger_http          = true
+  entry_point           = "get_one"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# postcard
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_5" {
+  provider  = google
+  name      = "prod_postcard"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/postcard/postcard.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_5" {
+  provider    = google
+  name        = "prod_postcard"
+  description = "lisää joulukortin tietokantaan"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_5.name
+  trigger_http          = true
+  entry_point           = "postcard"
+  environment_variables = {
+    PROJECT_ID = var.project
+  }
+}
+
+
+# return_images
+# --------------------------------------------------------------------
+resource "google_storage_bucket_object" "zip_6" {
+  provider  = google
+  name      = "prod_return_images"
+  bucket    = google_storage_bucket.bucket.name
+  source    = "../../backend/functions/return_images/return_images.zip"
+}
+
+# Luo funktio zipissä olevasta koodista
+resource "google_cloudfunctions_function" "func_6" {
+  provider    = google
+  name        = "prod_return_images"
+  description = "palauttaa kaikki käytössä olevat kuvat (png)"
+  runtime     = "python39"
+
+  available_memory_mb   = 128
+  source_archive_bucket = google_storage_bucket.bucket.name
+  source_archive_object = google_storage_bucket_object.zip_6.name
+  trigger_http          = true
+  entry_point           = "return_images"
+  environment_variables = {
+    bucket = var.bucket
+  }
+}
+
+
+# avataan pääsy funktioihin
+resource "google_cloudfunctions_function_iam_member" "invoker_1" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_1.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_2" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_2.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_3" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_3.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_4" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_4.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_5" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_5.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+}
+
+resource "google_cloudfunctions_function_iam_member" "invoker_6" {
+  provider       = google
+  cloud_function = google_cloudfunctions_function.func_6.name
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
 }

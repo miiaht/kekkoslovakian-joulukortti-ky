@@ -96,3 +96,4 @@ dmypy.json
 cython_debug/
 __init*
 **secrets/
+*.zip
