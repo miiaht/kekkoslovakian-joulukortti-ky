@@ -26,6 +26,10 @@ gcloud services enable servicenetworking.googleapis.com --project=$GOOGLE_CLOUD_
 echo "Enabling the Cloud SQL Admin API for project $GOOGLE_CLOUD_PROJECT..."
 gcloud services enable sqladmin.googleapis.com --project=$GOOGLE_CLOUD_PROJECT
 
+echo "Enabling the VM Manager (OS Config API) for project $GOOGLE_CLOUD_PROJECT..."
+gcloud services enable osconfig.googleapis.com --project=$GOOGLE_CLOUD_PROJECT
+
+
 
 echo "Enabling the Cloud Build API for project $GOOGLE_CLOUD_PROJECT..."
 gcloud services enable cloudbuild.googleapis.com --project=$GOOGLE_CLOUD_PROJECT

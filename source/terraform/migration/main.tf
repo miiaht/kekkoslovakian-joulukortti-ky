@@ -15,17 +15,18 @@ terraform {
 
 provider "google" {
   credentials = file(var.credentials_file)
-  project = var.project
-  region  = var.region
-  zone    = var.zone
+  project     = var.project
+  region      = var.region
+  zone        = var.zone
 }
 
 provider "google-beta" {
   credentials = file(var.credentials_file)
-  project = var.project
-  region  = var.region
-  zone    = var.zone
+  project     = var.project
+  region      = var.region
+  zone        = var.zone
 }
+
 
 ### OS-Login
 locals {
@@ -38,7 +39,7 @@ locals {
 
 ### VPC-yhteys
 resource "google_compute_network" "vpc_network" {
-  provider                = google-beta  
+  provider                = google-beta
   name                    = var.vpc_name
   routing_mode            = "GLOBAL"
   auto_create_subnetworks = false
@@ -46,26 +47,26 @@ resource "google_compute_network" "vpc_network" {
 
 ### Subnet
 resource "google_compute_subnetwork" "vpc_subnet" {
-  name                    = var.subnet_name  
-  region                  = var.region
-  network                 = google_compute_network.vpc_network.id
-  ip_cidr_range           = "10.0.0.0/16"
+  name          = var.subnet_name
+  region        = var.region
+  network       = google_compute_network.vpc_network.id
+  ip_cidr_range = "10.0.0.0/16"
 }
 
 ### Blockillinen priva IP-osoitteita
 resource "google_compute_global_address" "vpc_private_ip_block" {
-  name                    = var.private_name
-  network                 = google_compute_network.vpc_network.self_link
-  purpose                 = "VPC_PEERING"
-  address_type            = "INTERNAL"
-  ip_version              = "IPV4"
-  prefix_length           = 20
-  
+  name          = var.private_name
+  network       = google_compute_network.vpc_network.self_link
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  ip_version    = "IPV4"
+  prefix_length = 20
+
 }
 
 ### Priva service access instanssien kommunikoimiseen sisäisessä verkossa
 resource "google_service_networking_connection" "vpc_private_connection" {
-  network                 = google_compute_network.vpc_network.self_link  
+  network                 = google_compute_network.vpc_network.self_link
   reserved_peering_ranges = [google_compute_global_address.vpc_private_ip_block.name]
   service                 = "servicenetworking.googleapis.com"
 }
@@ -89,11 +90,11 @@ resource "google_compute_firewall" "vpc_firewall" {
   target_tags   = ["iap"]
 }
 
-### Firewall-sääntö SSH:lle
+### Luodaan Firewall-sääntö SSH:lle
 resource "google_compute_firewall" "vpc_firewall_ssh" {
-  name    = var.firewall_name_ssh
-  network = google_compute_network.vpc_network.id
-  direction   = "INGRESS"
+  name      = var.firewall_name_ssh
+  network   = google_compute_network.vpc_network.id
+  direction = "INGRESS"
 
   allow {
     protocol = "icmp"
@@ -104,9 +105,8 @@ resource "google_compute_firewall" "vpc_firewall_ssh" {
     ports    = ["22"]
   }
 
-  # Ei ehkä tarvita ?
-  #source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["ssh"]
+  source_ranges = ["0.0.0.0/0"]
+  target_tags = ["ssh"]
 }
 
 ### Private IP -säännöt SQL:lle
@@ -169,6 +169,9 @@ resource "google_compute_instance" "bastion" {
   }
   network_interface {
     subnetwork = google_compute_subnetwork.vpc_subnet.id
+    #access_config {
+    #  // Ephemeral public IP
+    #}
   }
   service_account {
     email  = google_service_account.service_account.email
@@ -193,7 +196,7 @@ resource "google_compute_instance" "henkilosto_instanssi" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "debian-cloud/debian-10"
     }
   }
 
@@ -205,7 +208,14 @@ resource "google_compute_instance" "henkilosto_instanssi" {
     #   // Ephemeral public IP
     # }
   }
+  resource_policies = [
+    google_compute_resource_policy.daily.id,
+  ]
   metadata_startup_script = file("startup-script.sh")
+  service_account {
+    email  = google_service_account.service_account.email
+    scopes = var.scopes
+  }
 }
 
 ### IAP-lupa henkilosto-instanssiin
@@ -224,7 +234,7 @@ resource "google_compute_instance" "reskontra_instanssi" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "debian-cloud/debian-10"
     }
   }
 
@@ -235,7 +245,15 @@ resource "google_compute_instance" "reskontra_instanssi" {
     #   // Ephemeral public IP
     # }
   }
+  resource_policies = [
+    google_compute_resource_policy.daily.id,
+    ]
   metadata_startup_script = file("startup-script.sh")
+
+  service_account {
+    email  = google_service_account.service_account.email
+    scopes = var.scopes
+  }
 }
 
 ### IAP-lupa reskontra-instanssiin
@@ -246,100 +264,19 @@ resource "google_iap_tunnel_instance_iam_binding" "tunnel_user_iam_res" {
   members  = var.members
 }
 
-### Testi-SQL-servu
-resource "google_compute_instance" "sql_instanssi" {
-  name         = "sql"
-  machine_type = "f1-micro"
-  tags         = ["sql"]
-
-  boot_disk {
-    initialize_params {
-      image = "windows-sql-cloud/sql-std-2019-win-2019"
-    }
-  }
-
-  network_interface {
-    network    = google_compute_network.vpc_network.id
-    subnetwork = google_compute_subnetwork.vpc_subnet.id
-    # access_config {
-    #   // Ephemeral public IP
-    # }
-  }
-  #metadata_startup_script = file("startup-script.sh")
-}
-
-### Firewall-sääntö sql:lle
-resource "google_compute_firewall" "vpc_firewall_sql" {
-  name    = var.firewall_name_sql
-  network = google_compute_network.vpc_network.id
-
-  allow {
-    protocol = "icmp"
-  }
-
-  allow {
-    protocol = "tcp"
-    ports    = ["1433"]
-  }
-
-  direction   = "INGRESS"
-  target_tags   = ["sql"]
-  source_ranges = ["0.0.0.0/0"]
-}
-
-# Ei ehkä hyödyllinen? ks.myös service accounts
-# ### Proxy -instanssi SQL:lle
-# resource "google_compute_instance" "db_proxy" {
-#   name                      = "kekkoslovakia-db-proxy"
-#   machine_type              = "f1-micro"
-#   zone                      = var.zone
-#   desired_status            = "RUNNING"
-#   allow_stopping_for_update = true
-#   tags = ["ssh"]
-#   boot_disk {
-#     initialize_params {
-#       # Container-Optimized OS
-#       image = "cos-cloud/cos-stable" 
-#       size  = 10                
-#       type  = "pd-ssd"             
-#     }
-#   }
-#   metadata = {
-#     enable-oslogin = "TRUE"
-#   }
-#   metadata_startup_script = templatefile("run_cloud_sql_proxy.tpl", {
-#     "db_instance_name"    = "kekkoslovakia-db-proxy",
-#     "service_account_key" = base64decode(google_service_account_key.key.private_key),
-#     })
-      
-#   network_interface {
-#     network    = google_compute_network.vpc_network.id
-#     subnetwork = google_compute_subnetwork.vpc_subnet.id
-#     #access_config must be set for the proxy to get a public IP, even if the block is empty
-#     access_config {}
-#   }
-#   scheduling {
-#     on_host_maintenance = "MIGRATE"
-#   }
-#   service_account {
-#     #email = "serviceAccount:${google_service_account.service_account.email}"
-#     scopes = ["cloud-platform"]
-#   }
-# }
-
 ### Automaattiset päivitykset instansseihin
 resource "google_os_config_patch_deployment" "instanssi_patch" {
   patch_deployment_id = "instanssi-patch-deploy"
 
   instance_filter {
-    #Kaikki kerralla?
+    
     all = true
   }
 
   patch_config {
     yum {
       security = true
-      minimal = true
+      minimal  = true
     }
   }
 
@@ -349,7 +286,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
     }
 
     time_of_day {
-      hours = 23
+      hours   = 23
       minutes = 59
       seconds = 59
     }
@@ -358,7 +295,7 @@ resource "google_os_config_patch_deployment" "instanssi_patch" {
     monthly {
       week_day_of_month {
         week_ordinal = -1
-        day_of_week = "SUNDAY"
+        day_of_week  = "SUNDAY"
       }
     }
   }
@@ -383,24 +320,6 @@ resource "google_project_iam_member" "service_account_iam" {
   member  = "serviceAccount:${google_service_account.service_account.email}"
 }
 
-# ### Proxy Service Account SQL-tietokannalle
-# resource "google_service_account" "proxy_account" {
-#   account_id = "kekkoslovakia-proxy-sa"
-# }
-
-# ### SQL Editor -IAM-rooli Proxy-accountille
-# resource "google_project_iam_member" "role" {
-#   project = var.project
-#   role   = "roles/cloudsql.editor"
-#   member = "serviceAccount:${google_service_account.proxy_account.email}"
-# }
-
-# ### Avain Proxy-accountille
-# resource "google_service_account_key" "key" {
-#   service_account_id = google_service_account.proxy_account.name
-# }
-
-
 #######################################
 #   SQL-tietokanta Kekkoslovakialle   #
 #######################################
@@ -415,9 +334,9 @@ resource "google_sql_database_instance" "kekkoslovakia_sql_instanssi" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 
   settings {
-    tier      = "db-f1-micro"
+    tier              = "db-f1-micro"
     availability_type = "REGIONAL"
-    disk_size = 10
+    disk_size         = 10
 
     ip_configuration {
       ipv4_enabled    = false
@@ -452,3 +371,18 @@ resource "google_sql_user" "reskontra_database_user" {
   password = var.reskontra_database_password
 }
 
+### ajastin instansseille. Instanssi menee tauolle 2 aikaan aamuyöllä, ja käynnistyy 6 aikaan aamulla
+resource "google_compute_resource_policy" "daily" {
+  name   = "policy"
+  region = "us-central1"
+  description = "Start and stop instances"
+  instance_schedule_policy {
+    vm_start_schedule {
+      schedule = "0 6 * * *"
+    }
+    vm_stop_schedule {
+      schedule = "0 2 * * *"
+    }
+    time_zone = "Europe/Helsinki"
+  }
+}

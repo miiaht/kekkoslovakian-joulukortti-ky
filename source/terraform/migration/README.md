@@ -1,9 +1,22 @@
-Päivitys 5.1.2022 - Elina:
-    Uusi main.tf pelkästään Bastion hostin luonnille;
-    main.tf sisältää seuraavien resurssien luonnin:
-        VPC-yhteys                  "kekkoskakkos-vpc"
-        subnet                      "kekkoskakkos-subnet"
-        firewall-sääntö IAP:lle     "kekkoskakkos-firewall-allow-iap"
-        Bastion-instanssi           "bastion-host"        
-        IAP-secured Tunnel User -oikeudet käyttäjille Elina ja J-P
-        
+# Kekkoslovakian Joulukortti Ky -migration
+
+## IAP TCP forwarding with Bastion
+- encrypted tunnel to forward SSH traffic to VM instance
+
+# To run
+- make sure 
+- terraform apply
+
+## Once apply is complete, connect to Bastion instance with SSH. To connect to database first connect to henkilostohallinta or reskontra instance:
+
+- gcloud compute ssh henkilostohallinta --internal-ip
+
+# or 
+
+- gcloud compute ssh reskontra --internal-ip 
+
+
+# To connect to henkilosto or reskontra database:
+
+- psql -h sql-instance-private-ip -U henkilosto 
+- psql -h sql-instance-private-ip -U reskontra
