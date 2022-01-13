@@ -3,6 +3,8 @@
 ## IAP TCP forwarding with Bastion
 - encrypted tunnel to forward SSH traffic to VM instance
 
+# To use instance scheduling make sure @compute-system.iam.gserviceaccount has compute intance admin role
+
 # To run
 - terraform apply
 
